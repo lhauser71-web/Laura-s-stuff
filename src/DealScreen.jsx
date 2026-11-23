@@ -502,7 +502,7 @@ export default function DealScreen() {
               <div className="step-n spacer" aria-hidden="true">00</div>
               <div className="intro">
                 <p className="intro-who">Built for real estate investors, lenders, asset managers and brokers who need a fast, defensible first read on a deal.</p>
-                <p className="intro-what">Paste a listing, upload a brochure or enter the numbers. Ellie Jr. calculates the metrics that matter, flags the risks and tells you whether the deal is worth a closer look.</p>
+                <p className="intro-what">Enter the headline numbers and Ellie Jr. calculates the metrics that matter, flags the risks and tells you whether the deal is worth pursuing.</p>
               </div>
             </div>
             {/* STEP 1: enter the deal */}
