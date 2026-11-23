@@ -210,119 +210,118 @@ button.primary[disabled]{opacity:.45}
 .step-row:has(.card.locked) > .step-n{filter:none;color:#b9b3ae;opacity:.35}
 @media (max-width:640px){.step-row{grid-template-columns:44px minmax(0,1fr);gap:8px}.step-row > .step-n{width:auto;height:auto;font-size:38px;margin-top:10px}}
 
-/* ===================== Results: Ellie's deal report (dark) ===================== */
-.results-page{--r-bg:#0c0c0c;--r-panel:#151515;--r-line:#2a2a2a;--r-text:#f2f0ed;--r-muted:#9a9591;--r-green:#3ccf8e;--r-amber:#f5a524;--r-red:#ff5a4f;
-  background:var(--r-bg);color:var(--r-text);min-height:100vh}
-.results-page a{color:inherit}
-.rp-top{display:flex;align-items:center;gap:14px;padding:14px 28px;border-bottom:1px solid var(--r-line)}
-.rp-top img{height:34px;width:auto}
-.rp-top-t{font-family:var(--display);font-size:22px;letter-spacing:.04em;text-transform:uppercase;color:var(--r-muted)}
-.rp-back{margin-left:auto;background:none;border:0;color:var(--r-muted);font-family:var(--body);font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:8px 0}
-.rp-back:hover{color:var(--r-text)}
-.rp-main{max-width:1080px;margin:0 auto;padding:36px 28px 48px}
-.rp-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--r-muted)}
-.rp-deal h1{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:56px;line-height:1;letter-spacing:.01em;margin:8px 0 6px}
-.rp-deal-meta{color:var(--r-muted);font-size:13px}
-.rp-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--r-line);border:1px solid var(--r-line);margin-top:22px}
-.rp-kpi{background:var(--r-panel);padding:12px 14px;display:flex;flex-direction:column;gap:4px;border-top:3px solid transparent}
-.rp-kpi .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--r-muted)}
-.rp-kpi .v{font-family:var(--display);font-size:30px;line-height:1}
-.rp-kpi.good{border-top-color:var(--r-green)} .rp-kpi.warn{border-top-color:var(--r-amber)} .rp-kpi.bad{border-top-color:var(--r-red)}
-.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 6px}
-.rp-btn{background:transparent;border:2px solid #f2f0ed;color:#f2f0ed;border-radius:4px;font-family:var(--body);font-weight:500;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;cursor:pointer}
-.rp-btn:hover:not([disabled]){background:#f2f0ed;color:#0c0c0c}
-.rp-btn[disabled]{opacity:.4;cursor:default}
-.rp-status{color:var(--r-muted);font-size:12px;margin:6px 0 0}
-.rp-wait{display:flex;align-items:center;gap:10px;color:var(--r-muted);margin:28px 0}
+/* ===================== Results: Ellie's deal report =====================
+   Same brand world as the deal page (grey paper, white cards, League Gothic + Plex Mono, one orange);
+   5D black is used only for the deal summary and the three numbers so the report still reads as its own page. */
+.results-page{--r-green:#1f9d63;--r-amber:#d98a00;--r-red:#d93a2f;--r-black:#201d1d;background:var(--paper);min-height:100vh}
+.rp-main{max-width:1080px;margin:0 auto;padding:18px 24px 48px}
+.rp-back{background:none;border:0;color:var(--muted);font-family:var(--body);font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:6px 0;margin-bottom:12px}
+.rp-back:hover{color:var(--ink)}
+.rp-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a39b95}
+
+/* Deal summary: 5D black band */
+.rp-deal{background:var(--r-black);color:#fff;padding:26px 28px}
+.rp-deal h1{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:52px;line-height:1;letter-spacing:.01em;margin:8px 0 6px}
+.rp-deal-meta{color:#bdb6b1;font-size:13px}
+.rp-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:#3a3534;border:1px solid #3a3534;margin-top:20px}
+.rp-kpi{background:#2a2626;padding:12px 14px;display:flex;flex-direction:column;gap:4px;border-top:3px solid transparent}
+.rp-kpi .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#bdb6b1}
+.rp-kpi .v{font-family:var(--display);font-size:30px;line-height:1;color:#fff}
+.rp-kpi.good{border-top-color:#3ccf8e} .rp-kpi.warn{border-top-color:#f5a524} .rp-kpi.bad{border-top-color:#ff5a4f}
+
+.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 4px}
+.rp-status{color:var(--muted);font-size:12px;margin:4px 0 0}
+.rp-wait{display:flex;align-items:center;gap:10px;color:var(--muted);margin:24px 0}
 .rp-dot{width:10px;height:10px;border-radius:50%;background:#e15e29;animation:rpPulse 1s ease-in-out infinite}
 @keyframes rpPulse{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.rp-dot{animation:none}}
 
-.rp{margin-top:26px;display:flex;flex-direction:column;gap:22px}
+.rp{margin-top:18px;display:flex;flex-direction:column;gap:18px}
 .rp p{margin:0}
-.rp strong{color:var(--r-text)}
-.rp-h{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:30px;letter-spacing:.02em;margin:0 0 16px;color:var(--r-text)}
-.rp-h small{font-family:var(--body);font-size:11px;letter-spacing:.14em;color:var(--r-muted);margin-left:10px;vertical-align:middle}
-.rp-h-xl{font-size:44px;line-height:1}
-.rp-h-xl span{color:#5f5a57}
-.rp-sec{background:var(--r-panel);border:1px solid var(--r-line);padding:26px 28px}
+.rp-h{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:28px;letter-spacing:.02em;margin:0 0 14px;line-height:1}
+.rp-h small{font-family:var(--body);font-size:11px;letter-spacing:.12em;color:var(--muted);margin-left:10px;vertical-align:middle}
+.rp-sec{background:var(--panel);border:1px solid var(--rule);padding:22px 24px}
 
-/* Verdict: RAG */
-.rp-verdict{border:1px solid var(--r-line);border-left:10px solid var(--rag);background:linear-gradient(90deg,color-mix(in srgb,var(--rag) 14%,var(--r-panel)) 0%,var(--r-panel) 60%);padding:26px 28px}
+/* Verdict: RAG, light card with a strong coloured edge */
+.rp-verdict{background:color-mix(in srgb,var(--rag) 7%,#fff);border:1px solid color-mix(in srgb,var(--rag) 35%,var(--rule));border-left:10px solid var(--rag);padding:22px 24px}
 .rag-green{--rag:var(--r-green)} .rag-amber{--rag:var(--r-amber)} .rag-red{--rag:var(--r-red)}
 .rp-rag{display:flex;align-items:center;gap:18px}
-.rp-rag-icon{flex:none;width:68px;height:68px;border-radius:50%;background:var(--rag);color:#0c0c0c;display:grid;place-items:center}
-.rp-rag-label{font-family:var(--display);text-transform:uppercase;font-size:64px;line-height:.95;color:var(--rag);letter-spacing:.01em}
-.rp-rag-note{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--r-muted);margin-top:2px}
-.rp-why{font-size:18px;line-height:1.55;margin-top:18px!important;max-width:62ch;color:var(--r-text)}
+.rp-rag-icon{flex:none;width:64px;height:64px;border-radius:50%;background:var(--rag);color:#fff;display:grid;place-items:center}
+.rp-verdict .rp-kicker{color:var(--muted)}
+.rp-rag-label{font-family:var(--display);text-transform:uppercase;font-size:60px;line-height:.95;color:var(--rag);letter-spacing:.01em}
+.rp-rag-note{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.rp-why{font-size:17px;line-height:1.55;margin-top:16px!important;max-width:64ch;color:var(--ink)}
 
-/* Three numbers that matter */
-.rp-sec[aria-label="The three numbers that matter"]{background:#000;border-color:#000;padding:34px 28px 38px}
-.rp-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px}
+/* Three numbers that matter: the 5D black hero */
+.rp-sec[aria-label="The three numbers that matter"]{background:var(--r-black);border-color:var(--r-black);color:#fff;padding:30px 28px 34px}
+.rp-h-xl{font-size:42px;color:#fff}
+.rp-h-xl span{color:#8a827d}
+.rp-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px}
 .rp-num{display:flex;flex-direction:column}
-.rp-num:nth-child(2){margin-top:56px}
-.rp-num:nth-child(3){margin-top:112px}
-.rp-num-v{font-family:var(--display);font-size:96px;line-height:.9;letter-spacing:-.005em;color:#fff;margin:14px 0 10px}
-.rp-num-l{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#e8e4e0;margin-bottom:8px}
-.rp-num-b{color:var(--r-muted);font-size:13.5px;line-height:1.55}
-.rp-bar-segs{display:flex;gap:4px;height:30px}
-.rp-bar-segs i{flex:1;border-radius:4px;background:#2b2b2b}
-.rp-bar.rag-green .rp-bar-segs i.on{background:var(--r-green)}
-.rp-bar.rag-amber .rp-bar-segs i.on{background:var(--r-amber)}
-.rp-bar.rag-red .rp-bar-segs i.on{background:var(--r-red)}
-.rp-bar-scale{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#5f5a57;margin-top:5px}
+.rp-num:nth-child(2){margin-top:52px}
+.rp-num:nth-child(3){margin-top:104px}
+.rp-num-v{font-family:var(--display);font-size:clamp(52px,6.4vw,88px);white-space:nowrap;line-height:.9;color:#fff;margin:12px 0 10px}
+.rp-unit{font-size:.42em;margin-left:.12em;letter-spacing:.02em;color:#cfcac6}
+.rp-num-l{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#f2eeea;margin-bottom:8px}
+.rp-num-b{color:#bdb6b1;font-size:13.5px;line-height:1.55}
+.rp-num-b strong{color:#fff}
+.rp-bar-segs{display:flex;gap:4px;height:28px}
+.rp-bar-segs i{flex:1;border-radius:4px;background:#3a3534}
+.rp-bar.rag-green .rp-bar-segs i.on{background:#3ccf8e}
+.rp-bar.rag-amber .rp-bar-segs i.on{background:#f5a524}
+.rp-bar.rag-red .rp-bar-segs i.on{background:#ff5a4f}
+.rp-bar-scale{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a827d;margin-top:5px}
 
 /* Red flags: potential blockers */
-.rp-flags{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-.rp-flags li{display:flex;gap:16px;align-items:flex-start;padding:16px 18px;border:1px solid color-mix(in srgb,var(--r-red) 35%,var(--r-line));background:color-mix(in srgb,var(--r-red) 6%,var(--r-panel));border-radius:6px}
-.rp-x{flex:none;width:38px;height:38px;border-radius:50%;background:var(--r-red);color:#0c0c0c;display:grid;place-items:center}
-.rp-flag-t{font-weight:600;font-size:15px;margin-bottom:4px}
-.rp-flag-b{color:#cfcac6;font-size:13.5px;line-height:1.55}
-.rp-check{margin-top:8px!important;font-size:12.5px;color:var(--r-muted);display:flex;gap:8px;align-items:baseline}
-.rp-check > span:first-child{flex:none;font-size:10px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--r-muted);padding:1px 6px;border-radius:3px}
+.rp-flags{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.rp-flags li{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border:1px solid color-mix(in srgb,var(--r-red) 30%,var(--rule));border-left:4px solid var(--r-red);background:color-mix(in srgb,var(--r-red) 4%,#fff)}
+.rp-x{flex:none;width:34px;height:34px;border-radius:50%;background:var(--r-red);color:#fff;display:grid;place-items:center}
+.rp-x svg{width:18px;height:18px}
+.rp-flag-t{font-weight:600;font-size:14.5px;margin-bottom:3px}
+.rp-flag-b{font-size:13.5px;line-height:1.55}
+.rp-check{margin-top:7px!important;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:baseline}
+.rp-check > span:first-child{flex:none;font-size:10px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--muted);padding:1px 6px;border-radius:3px}
 
 /* Questions: question cards */
-.rp-qs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 22px;padding-top:14px}
-.rp-q{position:relative;border:5px solid #e15e29;border-radius:22px;padding:26px 22px 20px 74px;background:var(--r-bg);min-height:120px}
-.rp-q-mark{position:absolute;left:14px;top:-26px;font-family:var(--display);font-size:92px;line-height:1;color:transparent;-webkit-text-stroke:4px #e15e29;paint-order:stroke;background:var(--r-bg);padding:0 4px}
-.rp-q-n{font-family:var(--display);text-transform:uppercase;font-size:24px;letter-spacing:.03em;color:#e15e29;line-height:1}
-.rp-q-t{margin-top:6px!important;font-size:14px;line-height:1.55;color:var(--r-text)}
+.rp-qs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 20px;padding-top:14px}
+.rp-q{position:relative;border:4px solid #e15e29;border-radius:18px;padding:24px 20px 18px 70px;background:var(--panel);min-height:110px}
+.rp-q-mark{position:absolute;left:12px;top:-26px;font-family:var(--display);font-size:88px;line-height:1;color:transparent;-webkit-text-stroke:3.5px #e15e29;paint-order:stroke;background:var(--panel);padding:0 4px}
+.rp-q-n{font-family:var(--display);text-transform:uppercase;font-size:22px;letter-spacing:.03em;color:#e15e29;line-height:1}
+.rp-q-t{margin-top:6px!important;font-size:14px;line-height:1.55}
 
 /* Data room checklist */
-.rp-dr{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px}
-.rp-dr li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--r-line);font-size:13.5px}
+.rp-dr{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 22px}
+.rp-dr li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--rule);font-size:13.5px}
 .rp-dr li svg{flex:none;color:#e15e29;margin-top:1px}
 
 /* What would change my mind */
-.rp-mind{display:flex;gap:18px;align-items:flex-start;padding:26px 28px;border:1px solid #e15e29;background:color-mix(in srgb,#e15e29 10%,var(--r-bg))}
-.rp-mind-i{flex:none;width:52px;height:52px;border-radius:50%;background:#e15e29;color:#fff;display:grid;place-items:center}
+.rp-mind{display:flex;gap:16px;align-items:flex-start;padding:22px 24px;border:1px solid #e15e29;background:#fdf0ea}
+.rp-mind-i{flex:none;width:48px;height:48px;border-radius:50%;background:#e15e29;color:#fff;display:grid;place-items:center}
 .rp-mind p{margin-top:8px!important;font-size:15px;line-height:1.6;max-width:70ch}
 
-.rp-foot{display:flex;justify-content:flex-end;margin-top:36px}
-.rp-foot img{height:20px;width:auto;opacity:.9}
+.rp-foot{display:flex;justify-content:flex-end;margin-top:28px}
+.rp-foot img{height:20px;width:auto}
 
 @media (max-width:860px){
   .rp-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .rp-nums{grid-template-columns:1fr;gap:34px}
+  .rp-nums{grid-template-columns:1fr;gap:32px}
   .rp-num:nth-child(2),.rp-num:nth-child(3){margin-top:0}
   .rp-qs,.rp-dr{grid-template-columns:1fr}
 }
 @media (max-width:560px){
-  .rp-main{padding:24px 16px 40px}
-  .rp-top{padding:12px 16px}
-  .rp-deal h1{font-size:40px}
+  .rp-main{padding:14px 14px 40px}
+  .rp-deal{padding:20px 18px}
+  .rp-deal h1{font-size:38px}
   .rp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .rp-rag-label{font-size:44px}
-  .rp-rag-icon{width:54px;height:54px}
-  .rp-h-xl{font-size:34px}
-  .rp-num-v{font-size:76px}
-  .rp-sec,.rp-verdict,.rp-mind{padding:20px 18px}
-  .rp-q{padding:24px 16px 18px 62px}
-  .rp-q-mark{font-size:76px;left:10px;top:-22px}
+  .rp-rag-label{font-size:42px}
+  .rp-rag-icon{width:52px;height:52px}
+  .rp-h-xl{font-size:32px}
+  .rp-sec,.rp-verdict,.rp-mind{padding:18px 16px}
+  .rp-q{padding:22px 14px 16px 60px}
+  .rp-q-mark{font-size:74px;left:8px;top:-22px}
 }
-
-.rp-num-v{white-space:nowrap;font-size:clamp(56px,7.2vw,96px)}
-.rp-q{background:var(--r-panel)}
-.rp-q-mark{background:var(--r-panel)}
-.rp-num-v{font-size:clamp(52px,6.4vw,88px)}
-.rp-unit{font-size:.42em;margin-left:.12em;letter-spacing:.02em;color:#cfcac6}
+.rp-bar-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.rp-bar-top .rp-back{margin:0}
+.rp-bar-top .rp-actions{margin:0}
+.rp-deal + .rp-status{margin-top:10px}
+@media (max-width:560px){.rp-bar-top .rp-actions{width:100%}.rp-bar-top .rp-actions > *{flex:1 1 auto;text-align:center}}

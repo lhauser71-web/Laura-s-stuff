@@ -273,7 +273,7 @@ export default function DealScreen() {
         staleRef.current = false;
         setSoloBtn(true);
         if (!soloShownRef.current) { soloShownRef.current = true; setTimeout(openSolo, 1500); }
-        setAiStatus("Ellie's first pass on this sample deal. Paste your own listing for a live one.");
+        setAiStatus("");
         return full;
       } finally {
         setRunning(false);
@@ -358,12 +358,21 @@ export default function DealScreen() {
     <>
       {screen === "results" ? (
         <div className="results-page">
-          <header className="rp-top">
-            <img src="/mark5d.webp" alt="5D" height="40" />
-            <span className="rp-top-t">Deal Screen</span>
-            <button type="button" className="rp-back" onClick={backToDeal}>← Back to the deal</button>
+          <header className="top">
+            <div className="brand">
+              <h1>Deal Screen: A Senior analyst <span>on every deal</span></h1>
+            </div>
+            <img className="mark-top" src="/mark5d.webp" alt="5D" height="88" />
           </header>
           <main className="rp-main">
+            <div className="rp-bar-top">
+              <button type="button" className="rp-back" onClick={backToDeal}>← Back to the deal</button>
+              <div className="rp-actions">
+              <button type="button" className="ghost" disabled={running || !M} onClick={() => runAI(true)}>Run it again</button>
+              <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>{copied ? "Copied ✓" : "Copy IC brief"}</button>
+              <a className="btn-primary" href={SOLO_URL} target="_blank" rel="noopener">Go deeper in Solo</a>
+              </div>
+            </div>
             <section className="rp-deal" aria-label="The deal">
               <div className="rp-kicker">Deal screen analysis · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</div>
               <h1>{D.name || "Your deal"}</h1>
@@ -377,16 +386,11 @@ export default function DealScreen() {
               )}
             </section>
 
-            <div className="rp-actions">
-              <button type="button" className="rp-btn" disabled={running || !M} onClick={() => runAI(true)}>Run it again</button>
-              <button type="button" className="rp-btn" disabled={!aiRan || running} onClick={copyBrief}>{copied ? "Copied ✓" : "Copy IC brief"}</button>
-              <a className="btn-primary" href={SOLO_URL} target="_blank" rel="noopener">Go deeper in Solo</a>
-            </div>
             {!running && aiStatus && aiStatus !== AI_IDLE && <p className="rp-status">{aiStatus}</p>}
 
             <Report text={aiText} running={running} score={score} />
 
-            <div className="rp-foot"><img src="/logo-white.webp" alt="Fifth Dimension" height="20" /></div>
+            <div className="rp-foot"><img src="/logo-ink.webp" alt="Fifth Dimension" height="20" /></div>
           </main>
         </div>
       ) : (
