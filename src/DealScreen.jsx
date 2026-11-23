@@ -37,16 +37,17 @@ export default function DealScreen() {
   const [example, setExample] = useState("blank");
   const [vals, setVals] = useState(EXAMPLES.blank);
   const [inputsOpen, setInputsOpen] = useState(false);
-  const [screen, setScreen] = useState("deal"); // "deal" = steps 1-2, "ellie" = step 3
+  const [screen, setScreen] = useState("deal"); // "deal" = enter the deal, "numbers" = the numbers + Ellie
+  const [askLead, setAskLead] = useState(false);
   const staleRef = useRef(false);
   const pushedRef = useRef(false);
-  const numbersRef = useRef(null);
   const [tags, setTags] = useState({});
 
   const [tz, setTz] = useState("");
   const [tzStatus, setTzStatus] = useState("");
   const [tzBusy, setTzBusy] = useState(false);
   const fileRef = useRef(null);
+  const [fileName, setFileName] = useState("");
 
   const [aiText, setAiText] = useState("");
   const [aiRan, setAiRan] = useState(false);
@@ -71,29 +72,33 @@ export default function DealScreen() {
   const D = useMemo(() => parseVals(vals), [vals]);
   const M = useMemo(() => calc(D), [D]);
 
-  // ---------- screens: "/" is enter the deal + the numbers, "/first-pass" is Ellie ----------
+  // ---------- screens: "/" is enter the deal, "/numbers" is the numbers + Ellie's first pass ----------
   useEffect(() => {
-    const onFirstPass = () => window.location.pathname.replace(/\/+$/, "") === "/first-pass";
-    // A fresh load of /first-pass has no deal in memory, so start from the home screen.
-    if (onFirstPass()) { try { window.history.replaceState(null, "", "/" + window.location.search); } catch {} }
-    const onPop = () => { pushedRef.current = onFirstPass(); setScreen(onFirstPass() ? "ellie" : "deal"); window.scrollTo(0, 0); };
+    const onNumbers = () => window.location.pathname.replace(/\/+$/, "") === "/numbers";
+    // A fresh load of /numbers has no deal in memory, so start from the first screen.
+    if (onNumbers()) { try { window.history.replaceState(null, "", "/" + window.location.search); } catch {} }
+    const onPop = () => { pushedRef.current = onNumbers(); setScreen(onNumbers() ? "numbers" : "deal"); window.scrollTo(0, 0); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  function goToEllie() {
+  function goToNumbers() {
     if (!M) return;
-    try { window.history.pushState(null, "", "/first-pass" + window.location.search); pushedRef.current = true; } catch { pushedRef.current = false; }
-    setScreen("ellie");
+    try { window.history.pushState(null, "", "/numbers" + window.location.search); pushedRef.current = true; } catch { pushedRef.current = false; }
+    setScreen("numbers");
     window.scrollTo(0, 0);
-    if (leadDone && (!aiRan || staleRef.current)) runAI(true);
-    else if (!leadDone) setTimeout(() => nameRef.current && nameRef.current.focus(), 50);
   }
 
   function backToDeal() {
     if (pushedRef.current) { pushedRef.current = false; try { window.history.back(); return; } catch {} }
     setScreen("deal");
     window.scrollTo(0, 0);
+  }
+
+  function startEllie() {
+    if (leadDone) { runAI(true); return; }
+    setAskLead(true);
+    setTimeout(() => nameRef.current && nameRef.current.focus(), 50);
   }
 
   // ---------- form ----------
@@ -110,17 +115,13 @@ export default function DealScreen() {
     clearAI();
   }
 
-  function showNumbers() {
-    setTimeout(() => numbersRef.current && numbersRef.current.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  }
-
   function loadSample() {
     loadExample("aus");
     setTz("");
     if (fileRef.current) fileRef.current.value = "";
+    setFileName("");
     setInputsOpen(true);
-    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin. Edit any detail below, or swap in another sample.");
-    showNumbers();
+    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin. Check the details below, then see the numbers.");
   }
 
   function setField(id, value) {
@@ -302,13 +303,17 @@ export default function DealScreen() {
           <div className="steps">
             {/* STEP 1: enter the deal */}
             <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
-              <div className="step-head"><span className="step-n">1</span><h2>Enter your deal</h2></div>
+              <h2>Enter your deal</h2>
               <p className="lede">Paste a broker listing or upload a screenshot, and Ellie fills in the numbers. No listing to hand? Use sample data.</p>
               <textarea id="tz" placeholder="Paste the listing or teaser text here" value={tz} onChange={(e) => setTz(e.target.value)} />
-              <label className="file">Or upload a screenshot
-                <input type="file" ref={fileRef} accept="image/png,image/jpeg,image/gif,image/webp"
-                  onChange={() => { const f = fileRef.current.files[0]; if (f) setTzStatus("Ready to read " + f.name + "."); }} />
-              </label>
+              <div className="row upload-row">
+                <span className="or">or</span>
+                <label className="upload">Upload a screenshot
+                  <input type="file" ref={fileRef} accept="image/png,image/jpeg,image/gif,image/webp"
+                    onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) setTzStatus("Ready to read " + f.name + "."); }} />
+                </label>
+                {fileName && <span className="file-name">{fileName}</span>}
+              </div>
               <div className="row" style={{ marginTop: 14 }}>
                 <button type="button" className="primary" disabled={tzBusy} onClick={fillFromTeaser}>Fill in the fields</button>
                 <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
@@ -346,13 +351,24 @@ export default function DealScreen() {
                 </div>
                 <p className="hint">Assumes 2% closing and 2% sale costs; capex funded from equity in year 1. Nothing you type here is stored.</p>
               </details>
+
+              <div className="row next-row">
+                <button type="button" className="primary" disabled={!M} onClick={goToNumbers}>See the numbers →</button>
+                {!M && <span className="status">{D.name || D.price ? "Still missing: " + missingCore(D) + "." : "Paste a listing or use sample data first."}</span>}
+              </div>
             </form>
 
-            {/* STEP 2: the numbers */}
-            <div className="card step" ref={numbersRef}>
-              <div className="step-head"><span className="step-n">2</span><h2>The numbers{M && D.name ? <small>{D.name}</small> : null}</h2></div>
+          </div>
+          ) : (
+          <div className="steps">
+            <div className="back-row">
+              <button type="button" className="back" onClick={backToDeal}>← Edit the deal</button>
+            </div>
+
+            <div className="card step">
+              <h2>The numbers{D.name ? <small>{D.name}</small> : null}</h2>
               {!M ? (
-                <p className="empty">Your debt metrics and returns appear here once step 1 is done.{D.name || D.price ? " Still missing: " + missingCore(D) + "." : ""}</p>
+                <p className="empty">Add your deal first. <button type="button" className="linkish" onClick={backToDeal}>Go back and enter it</button></p>
               ) : (
                 <>
                   <div className="metrics">
@@ -384,76 +400,43 @@ export default function DealScreen() {
               )}
             </div>
 
-            {/* Hand-off to step 3, on its own screen */}
-            <div className="card step next">
-              <div className="step-head">
-                <span className="step-n">3</span>
-                <div className="ellie-id">
-                  <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
-                  <div><h2 style={{ margin: 0 }}>Get Ellie's first pass</h2><small>Verdict, red flags, broker questions and the data-room list</small></div>
-                </div>
-              </div>
-              <div className="row">
-                <button type="button" className="primary" disabled={!M} onClick={goToEllie}>Run Ellie's first pass →</button>
-                {!M && <span className="status">Complete steps 1 and 2 first.</span>}
-              </div>
-            </div>
-          </div>
-          ) : (
-          <div className="steps">
-            <div className="back-row">
-              <button type="button" className="back" onClick={backToDeal}>← Back to the deal</button>
-              <span className="crumb">Step 3 of 3</span>
-            </div>
-
-            <div className="card step" ref={aiRef}>
-              <div className="step-head">
-                <span className="step-n">3</span>
-                <div className="ellie-id">
-                  <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
-                  <div><h2 style={{ margin: 0 }}>Ellie's first pass</h2><small>Fifth Dimension's AI analyst</small></div>
-                </div>
+            <div className="card step ellie-card" ref={aiRef}>
+              <div className="ellie-id" style={{ marginBottom: 14 }}>
+                <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
+                <div><h2 style={{ margin: 0 }}>Ellie's first pass</h2><small>Verdict, red flags, broker questions and the data-room list</small></div>
               </div>
 
-              {!M ? (
-                <p className="empty">Add your deal first. <button type="button" className="linkish" onClick={backToDeal}>Go back to step 1</button></p>
-              ) : (
-                <>
-                  <div className="summary">
-                    <div className="deal-line"><b>{D.name || "Your deal"}</b>{[D.asset, D.market, money(D.price, D.ccy)].filter(Boolean).map((x) => <span key={x}> · {x}</span>)}</div>
-                    <div className="mini">
-                      <div><span>Going-in cap</span><b>{pct(M.cap, 2)}</b></div>
-                      <div><span>DSCR</span><b>{isFinite(M.dscr) ? M.dscr.toFixed(2) + "x" : "no debt"}</b></div>
-                      <div><span>Debt yield</span><b>{isFinite(M.dy) ? pct(M.dy, 1) : "–"}</b></div>
-                      <div><span>Levered IRR</span><b>{isFinite(M.irr) ? pct(M.irr, 1) : "n/m"}</b></div>
-                    </div>
+              {!leadDone && !askLead && (
+                <div className="row">
+                  <button type="button" className="primary" disabled={!M} onClick={startEllie}>Run Ellie's first pass</button>
+                </div>
+              )}
+
+              {!leadDone && askLead && (
+                <form className="capture-in" noValidate onSubmit={submitLead}>
+                  <h3 className="sub" style={{ marginTop: 0 }}>Where should we send your first pass?</h3>
+                  <p style={{ margin: "0 0 12px", maxWidth: "70ch" }}>Add your name and work email to see Ellie's first pass here. We'll also email you a one-page PDF copy, with a link back so you can rerun it.</p>
+                  <div className="fields two">
+                    <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
+                    <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
                   </div>
+                  <div className="row" style={{ marginTop: 14 }}>
+                    <button type="submit" className="primary" disabled={lBusy}>Get Ellie's first pass</button>
+                    {lStatus && <span className="status">{lStatus}</span>}
+                  </div>
+                  <p className="hint" style={{ margin: "10px 0 0" }}>We'll use these details to send your brief and to follow up about Fifth Dimension. Unsubscribe any time.</p>
+                </form>
+              )}
 
-                  {!leadDone ? (
-                    <form className="capture-in" noValidate onSubmit={submitLead}>
-                      <h3 className="sub" style={{ marginTop: 0 }}>Where should we send your first pass?</h3>
-                      <p style={{ margin: "0 0 12px", maxWidth: "70ch" }}>Add your name and work email to see Ellie's first pass here. We'll also email you a one-page PDF copy, with a link back so you can rerun it.</p>
-                      <div className="fields two">
-                        <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
-                        <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
-                      </div>
-                      <div className="row" style={{ marginTop: 14 }}>
-                        <button type="submit" className="primary" disabled={lBusy}>Get Ellie's first pass</button>
-                        {lStatus && <span className="status">{lStatus}</span>}
-                      </div>
-                      <p className="hint" style={{ margin: "10px 0 0" }}>We'll use these details to send your brief and to follow up about Fifth Dimension. Unsubscribe any time.</p>
-                    </form>
-                  ) : (
-                    <>
-                      <div className="row">
-                        <button type="button" className={aiRan ? "ghost" : "primary"} disabled={running} onClick={() => runAI(true)}>{aiRan ? "Run it again" : "Get Ellie's first pass"}</button>
-                        <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>Copy IC brief</button>
-                        {soloBtn && <button type="button" className="ghost" onClick={openSolo}>Go deeper in Solo</button>}
-                      </div>
-                      <p className="status">{aiStatus}</p>
-                      <div id="ai" dangerouslySetInnerHTML={{ __html: md(aiText) }} />
-                    </>
-                  )}
+              {leadDone && (
+                <>
+                  <div className="row">
+                    <button type="button" className={aiRan ? "ghost" : "primary"} disabled={running || !M} onClick={() => runAI(true)}>{aiRan ? "Run it again" : "Run Ellie's first pass"}</button>
+                    <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>Copy IC brief</button>
+                    {soloBtn && <button type="button" className="ghost" onClick={openSolo}>Go deeper in Solo</button>}
+                  </div>
+                  <p className="status">{aiStatus}</p>
+                  <div id="ai" dangerouslySetInnerHTML={{ __html: md(aiText) }} />
                 </>
               )}
             </div>
@@ -558,7 +541,7 @@ function LeadResult({ r }) {
           </details>
         </>
       ) : (
-        <p style={{ margin: "0 0 4px" }}><strong>Thanks, {first}. We have your details.</strong> The first pass couldn't run just now, so nothing has been emailed yet. Click Get Ellie's first pass above to try again.</p>
+        <p style={{ margin: "0 0 4px" }}><strong>Thanks, {first}. We have your details.</strong> The first pass couldn't run just now, so nothing has been emailed yet. Click Run Ellie's first pass above to try again.</p>
       )}
       <details>
         <summary>What HubSpot records <span className="tag">connected later</span></summary>

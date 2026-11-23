@@ -16,7 +16,6 @@
 .teaser{border:1px dashed var(--ink);background:#faf9f8;padding:12px 14px;margin-bottom:14px}
 .teaser h3{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:20px;letter-spacing:.02em;margin:0 0 4px}
 .teaser .hint{margin:0 0 8px}
-label.file input{font-size:11px;padding:4px 0;border:0;background:none}
 .src{font-size:10px;letter-spacing:.02em;text-transform:none;color:var(--good);line-height:1.3}
 .src.miss{color:var(--bad)} .src.you{color:var(--muted)}
 .ellie{flex:none;display:block;width:52px;height:52px;border-radius:50%;object-fit:cover}
@@ -126,7 +125,6 @@ button.ghost[disabled]{opacity:.45;cursor:default}
 .step-n{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#e8441a,#ffa00a);color:var(--ink);font-family:var(--display);font-size:26px;line-height:1;padding-top:2px}
 .lede{margin:0 0 14px;font-size:14px;max-width:70ch}
 .step #tz{min-height:110px}
-.step label.file{margin-top:12px}
 .step .status{margin:10px 0 0}
 .step > .hint{margin:8px 0 0}
 details.inputs{margin-top:18px;border-top:1px solid var(--rule);padding-top:4px}
@@ -158,3 +156,13 @@ button.linkish{text-transform:none;letter-spacing:0;font-size:13px;text-decorati
 .step .fields.two{grid-template-columns:1fr 1fr}
 @media (max-width:560px){.step .fields.two{grid-template-columns:1fr}}
 .step.next{border:2px solid var(--ink)}
+.next-row{margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)}
+.step > h2{margin-bottom:12px}
+/* Branded upload button: hides the browser's own "Choose file / No file chosen" control */
+.upload-row{margin-top:12px}
+.upload-row .or{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+label.upload{position:relative;display:inline-flex;align-items:center;font-family:var(--body);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);padding:10px 22px;border:1px solid var(--ink);border-radius:999px;cursor:pointer;background:#fff}
+label.upload:hover{background:#faf9f8}
+label.upload:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+label.upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;padding:0;border:0}
+.file-name{font-size:12px;color:var(--ink);max-width:32ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
