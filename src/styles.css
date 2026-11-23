@@ -221,7 +221,7 @@ button.primary[disabled]{opacity:.45}
 
 /* Deal summary: 5D black band */
 .rp-deal{background:var(--r-black);color:#fff;padding:26px 28px}
-.rp-deal h1{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:52px;line-height:1;letter-spacing:.01em;margin:8px 0 6px}
+.rp-deal h1{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:52px;line-height:1;letter-spacing:.01em;margin:0 0 6px}
 .rp-deal-meta{color:#bdb6b1;font-size:13px}
 .rp-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:#3a3534;border:1px solid #3a3534;margin-top:20px}
 .rp-kpi{background:#2a2626;padding:12px 14px;display:flex;flex-direction:column;gap:4px;border-top:3px solid transparent}

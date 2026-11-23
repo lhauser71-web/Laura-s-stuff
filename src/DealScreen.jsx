@@ -466,9 +466,8 @@ export default function DealScreen() {
               </div>
             </div>
             <section className="rp-deal" aria-label="The deal">
-              <div className="rp-kicker">Deal screen analysis · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</div>
-              <h1>{D.name || "Your deal"}</h1>
-              <div className="rp-deal-meta">{[D.asset, D.market, D.size ? D.size.toLocaleString() + " " + D.unit : ""].filter(Boolean).join(" · ")}</div>
+              <h1>{(D.name || "Your deal").split(" · ")[0]}</h1>
+              <div className="rp-deal-meta">{[new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }), D.asset, D.market, D.size ? D.size.toLocaleString() + " " + D.unit : ""].filter(Boolean).join(" · ")}</div>
               {M && (
                 <div className="rp-kpis">
                   {[["Price", money(D.price, D.ccy), ""], ...tiles.filter(([k]) => ["Going-in cap", "DSCR", "Leverage spread", "Levered IRR"].includes(k)).map(([k, v, , c]) => [k, v, c]), ["Equity multiple", M.em.toFixed(2) + "x", M.em >= 1.6 ? "good" : M.em >= 1.3 ? "warn" : "bad"]].map(([k, v, c]) => (
