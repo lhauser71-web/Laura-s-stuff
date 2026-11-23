@@ -95,7 +95,7 @@ export default async function handler(req, res) {
 
   const pdf = await buildBriefPdf({
     date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
-    dealName,
+    dealName: shortName,
     meta: [clean(D.asset, 40), market, isFinite(D.size) ? D.size.toLocaleString("en-GB") + " " + clean(D.unit, 10) : ""].filter(Boolean).join(" · "),
     kpis: [["Price", money(D.price, D.ccy)], ["Going-in cap", pct(M.cap, 2)], ["DSCR", isFinite(M.dscr) ? M.dscr.toFixed(2) + "x" : "no debt"], ["Leverage spread", bps(M.spread)], ["Levered IRR", isFinite(M.irr) ? pct(M.irr, 1) : "n/m"], ["Equity multiple", M.em.toFixed(2) + "x"]],
     verdict: r.verdict.label, verdictRag: r.verdict.rag, verdictReason: r.verdict.why,
