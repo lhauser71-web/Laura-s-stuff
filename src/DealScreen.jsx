@@ -116,6 +116,13 @@ export default function DealScreen() {
     setTimeout(() => { const el = sampleRef.current; if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.focus({ preventScroll: true }); } }, 60);
   }
 
+  // Manual entry starts from a blank deal, unless Ellie has already filled it from a listing.
+  function openManual() {
+    if (inputsOpen) { setInputsOpen(false); return; }
+    if (example !== "blank") { loadExample("blank"); setTzStatus(""); }
+    setInputsOpen(true);
+  }
+
   function setField(id, value) {
     setVals((v) => ({ ...v, [id]: value }));
     setTags((t) => (t[id] && t[id].cls !== "you" ? { ...t, [id]: { text: "Edited by you", cls: "you" } } : t));
@@ -314,7 +321,7 @@ export default function DealScreen() {
                     onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) fillFromTeaser({ file: f }); fileRef.current.value = ""; }} />
                 </label>
                 <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
-                <button type="button" className={"ghost manual-btn" + (inputsOpen ? " on" : "")} aria-expanded={inputsOpen} aria-controls="deal-inputs" onClick={() => setInputsOpen((o) => !o)}>Enter deal info manually</button>
+                <button type="button" className={"ghost manual-btn" + (inputsOpen ? " on" : "")} aria-expanded={inputsOpen} aria-controls="deal-inputs" onClick={openManual}>Enter deal info manually</button>
                 {fileName && <span className="file-name">{fileName}</span>}
               </div>
               {tzStatus && <p className="status">{tzStatus}</p>}
