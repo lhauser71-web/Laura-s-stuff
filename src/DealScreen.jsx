@@ -317,12 +317,15 @@ export default function DealScreen() {
                 </label>
                 <span className="or">or</span>
                 <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
+                <span className="or">or</span>
+                <button type="button" className={"ghost manual-btn" + (inputsOpen ? " on" : "")} aria-expanded={inputsOpen} aria-controls="deal-inputs" onClick={() => setInputsOpen((o) => !o)}>Enter deal info manually</button>
                 {fileName && <span className="file-name">{fileName}</span>}
               </div>
               {tzStatus && <p className="status">{tzStatus}</p>}
 
-              <details className="inputs" open={inputsOpen} onToggle={(e) => setInputsOpen(e.currentTarget.open)}>
-                <summary>Enter deal info manually{D.name ? <small>{D.name}</small> : null}</summary>
+              {inputsOpen && (
+              <div className="inputs" id="deal-inputs">
+                <h3 className="inputs-h">Deal info{D.name ? <small>{D.name}</small> : null}</h3>
                 <label className="full" style={{ margin: "12px 0" }}>Load a sample deal
                   <select ref={sampleRef} value={example} onChange={(e) => loadExample(e.target.value)}>
                     {EXAMPLE_OPTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
@@ -350,7 +353,8 @@ export default function DealScreen() {
                   {field("om", "Anything else from the OM (optional)", <textarea id="om" placeholder="Paste a few lines: rent roll notes, lease terms, sponsor, tenancy. No confidential data please." value={vals.om} onChange={(e) => setField("om", e.target.value)} />, true)}
                 </div>
                 <p className="hint">Assumes 2% closing and 2% sale costs; capex funded from equity in year 1. Nothing you type here is stored.</p>
-              </details>
+              </div>
+              )}
 
             </form>
             </div>
