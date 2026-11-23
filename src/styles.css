@@ -1,4 +1,4 @@
-/* Layout idea: a working analyst's desk. Inputs left, the numbers and the first pass right; brand world of 5D black, grey paper and one orange. */
+/* Layout idea: a guided, three-step screen (enter the deal, the numbers, Ellie's first pass) in one column; brand world of 5D black, grey paper and one orange. */
 :root{
   --ink:#201d1d;
   --paper:#f1f0ee;
@@ -117,3 +117,28 @@ button.ghost:hover{background:linear-gradient(#faf9f8,#faf9f8) padding-box,linea
 button.ghost[disabled]{opacity:.45;cursor:default}
 .solo-cta a.btn-primary,.solo-cta button.ghost{font-size:14px;padding:16px 34px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Three-step flow */
+.steps{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.step{padding:22px 24px}
+.step-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.step-head h2{margin:0}
+.step-n{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#e8441a,#ffa00a);color:var(--ink);font-family:var(--display);font-size:26px;line-height:1;padding-top:2px}
+.lede{margin:0 0 14px;font-size:14px;max-width:70ch}
+.step #tz{min-height:110px}
+.step label.file{margin-top:12px}
+.step .status{margin:10px 0 0}
+.step > .hint{margin:8px 0 0}
+details.inputs{margin-top:18px;border-top:1px solid var(--rule);padding-top:4px}
+details.inputs > summary{font-family:var(--display);font-size:20px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);margin-top:10px}
+details.inputs > summary small{font-family:var(--body);font-size:11px;letter-spacing:.08em;color:var(--muted);margin-left:10px;text-transform:none}
+.step .fields{grid-template-columns:repeat(4,1fr)}
+@media (max-width:760px){.step .fields{grid-template-columns:1fr 1fr}}
+.empty{margin:0;padding:22px 16px;border:1px dashed #cfcac6;background:#faf9f8;color:var(--muted);font-size:13px}
+h3.sub{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:20px;letter-spacing:.02em;margin:20px 0 8px}
+h3.sub small{font-family:var(--body);font-size:11px;letter-spacing:.1em;color:var(--muted);margin-left:8px}
+.step-head + .row{margin-bottom:4px}
+#ai:empty{min-height:0}
+.steps ~ footer,.steps ~ .foot-logo{max-width:980px;margin-left:auto;margin-right:auto}
+.step .metrics{grid-template-columns:repeat(3,1fr)}
+@media (max-width:560px){.step .metrics{grid-template-columns:1fr 1fr}}

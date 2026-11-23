@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
-import { EXAMPLES, EXAMPLE_OPTIONS, FIELDS, NUMERIC, ASSETS, CCYS, UNITS, SAMPLE_TZ, SOLO_URL } from "./data.js";
+import { EXAMPLES, EXAMPLE_OPTIONS, FIELDS, NUMERIC, ASSETS, CCYS, UNITS, SOLO_URL } from "./data.js";
 import { calc, model, money, pct, bps, sym, perUnit, facts } from "./lib/finance.js";
 import { md, verdictOf } from "./lib/markdown.js";
 import { askEllie, fileToImage } from "./lib/ellie.js";
@@ -16,6 +16,15 @@ function parseVals(v) {
   return o;
 }
 
+function missingCore(D) {
+  const miss = [];
+  if (!isFinite(D.price)) miss.push("purchase price");
+  if (!isFinite(D.noi)) miss.push("NOI");
+  if (!isFinite(D.hold)) miss.push("hold");
+  if (!isFinite(D.exitcap)) miss.push("exit cap");
+  return miss.length ? miss.join(", ") : "a few details";
+}
+
 function errorMessage(e, fallback) {
   const code = e && e.code;
   if (code === "not_configured") return "The AI isn't switched on for this site yet (no API key set). The numbers still work.";
@@ -25,8 +34,10 @@ function errorMessage(e, fallback) {
 }
 
 export default function DealScreen() {
-  const [example, setExample] = useState("aus");
-  const [vals, setVals] = useState(EXAMPLES.aus);
+  const [example, setExample] = useState("blank");
+  const [vals, setVals] = useState(EXAMPLES.blank);
+  const [inputsOpen, setInputsOpen] = useState(false);
+  const numbersRef = useRef(null);
   const [tags, setTags] = useState({});
 
   const [tz, setTz] = useState("");
@@ -71,6 +82,19 @@ export default function DealScreen() {
     setVals(EXAMPLES[k]);
     setTags({});
     clearAI();
+  }
+
+  function showNumbers() {
+    setTimeout(() => numbersRef.current && numbersRef.current.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }
+
+  function loadSample() {
+    loadExample("aus");
+    setTz("");
+    if (fileRef.current) fileRef.current.value = "";
+    setInputsOpen(true);
+    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin. Edit any detail below, or swap in another sample.");
+    showNumbers();
   }
 
   function setField(id, value) {
@@ -147,7 +171,8 @@ export default function DealScreen() {
     setTags(nt);
     setExample("blank");
     clearAI();
-    setTzStatus("Ellie filled " + found + " fields from the document. Check them, then set your own assumptions for costs, debt, growth and exit.");
+    setInputsOpen(true);
+    setTzStatus("Ellie filled " + found + " fields from the document. Check them, then set your own assumptions for costs, debt, growth and exit below.");
   }
 
   // ---------- AI first pass ----------
@@ -253,76 +278,69 @@ export default function DealScreen() {
 
       <main>
         <section>
-          <div className="grid">
-            {/* LEFT: inputs */}
-            <form id="deal" className="card" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
-              <h2>The deal <small>illustrative examples, edit anything</small></h2>
-              <div className="teaser">
-                <h3>Start from the teaser</h3>
-                <p className="hint">Paste a broker teaser or listing, or upload a screenshot of one. Ellie fills in the fields and shows where each number came from. Public documents only: the OM and rent roll belong in Solo.</p>
-                <textarea id="tz" placeholder="Paste the teaser or listing text here" value={tz} onChange={(e) => setTz(e.target.value)} />
-                <div className="row" style={{ marginTop: 8 }}>
-                  <label className="file">Or upload a screenshot
-                    <input type="file" ref={fileRef} accept="image/png,image/jpeg,image/gif,image/webp"
-                      onChange={() => { const f = fileRef.current.files[0]; if (f) setTzStatus("Ready to read " + f.name + "."); }} />
-                  </label>
-                </div>
-                <div className="row" style={{ marginTop: 10 }}>
-                  <button type="button" className="primary" disabled={tzBusy} onClick={fillFromTeaser}>Fill in the fields</button>
-                  <button type="button" className="ghost" onClick={() => { setTz(SAMPLE_TZ); if (fileRef.current) fileRef.current.value = ""; setTzStatus("Sample teaser loaded. Click Fill in the fields."); }}>Try a sample teaser</button>
-                </div>
-                <p className="status">{tzStatus}</p>
+          <div className="steps">
+            {/* STEP 1: enter the deal */}
+            <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
+              <div className="step-head"><span className="step-n">1</span><h2>Enter your deal</h2></div>
+              <p className="lede">Paste a broker listing or upload a screenshot, and Ellie fills in the numbers. No listing to hand? Use sample data.</p>
+              <textarea id="tz" placeholder="Paste the listing or teaser text here" value={tz} onChange={(e) => setTz(e.target.value)} />
+              <label className="file">Or upload a screenshot
+                <input type="file" ref={fileRef} accept="image/png,image/jpeg,image/gif,image/webp"
+                  onChange={() => { const f = fileRef.current.files[0]; if (f) setTzStatus("Ready to read " + f.name + "."); }} />
+              </label>
+              <div className="row" style={{ marginTop: 14 }}>
+                <button type="button" className="primary" disabled={tzBusy} onClick={fillFromTeaser}>Fill in the fields</button>
+                <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
               </div>
+              {tzStatus && <p className="status">{tzStatus}</p>}
+              <p className="hint">Public documents only. Keep the OM and rent roll for Solo.</p>
 
-              <div className="row" style={{ marginBottom: 12 }}>
-                <label className="full" style={{ flex: 1 }}>Load an example
+              <details className="inputs" open={inputsOpen} onToggle={(e) => setInputsOpen(e.currentTarget.open)}>
+                <summary>Check and edit the details{D.name ? <small>{D.name}</small> : null}</summary>
+                <label className="full" style={{ margin: "12px 0" }}>Load a sample deal
                   <select value={example} onChange={(e) => loadExample(e.target.value)}>
                     {EXAMPLE_OPTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
                   </select>
                 </label>
-              </div>
-
-              <div className="fields">
-                {field("name", "Deal name", text("name"), true)}
-                {field("asset", "Asset type", select("asset", ASSETS))}
-                {field("market", "Market", text("market"))}
-                {field("ccy", "Currency", select("ccy", CCYS))}
-                {field("size", "Size", num("size"))}
-                {field("unit", "Size unit", select("unit", UNITS))}
-                {field("price", "Purchase price", num("price"))}
-                {field("noi", "In-place NOI (yr 1)", num("noi"))}
-                {field("occ", "Occupancy %", num("occ"))}
-                {field("opex", "Opex % of revenue", num("opex"))}
-                {field("capex", "Capex budget", num("capex"))}
-                {field("ltv", "LTV %", num("ltv"))}
-                {field("rate", "Interest rate %", num("rate"))}
-                {field("amort", "Amortisation (yrs, 0 = IO)", num("amort"))}
-                {field("hold", "Hold (yrs)", num("hold", "1"))}
-                {field("growth", "NOI growth %/yr", num("growth"))}
-                {field("exitcap", "Exit cap %", num("exitcap"))}
-                {field("plan", "Business plan", <textarea id="plan" value={vals.plan} onChange={(e) => setField("plan", e.target.value)} />, true)}
-                {field("om", "Anything else from the OM (optional)", <textarea id="om" placeholder="Paste a few lines: rent roll notes, lease terms, sponsor, tenancy. No confidential data please." value={vals.om} onChange={(e) => setField("om", e.target.value)} />, true)}
-              </div>
-              <p className="hint">Assumes 2% closing and 2% sale costs; capex funded from equity in year 1. Nothing you type here is stored.</p>
+                <div className="fields">
+                  {field("name", "Deal name", text("name"), true)}
+                  {field("asset", "Asset type", select("asset", ASSETS))}
+                  {field("market", "Market", text("market"))}
+                  {field("ccy", "Currency", select("ccy", CCYS))}
+                  {field("size", "Size", num("size"))}
+                  {field("unit", "Size unit", select("unit", UNITS))}
+                  {field("price", "Purchase price", num("price"))}
+                  {field("noi", "In-place NOI (yr 1)", num("noi"))}
+                  {field("occ", "Occupancy %", num("occ"))}
+                  {field("opex", "Opex % of revenue", num("opex"))}
+                  {field("capex", "Capex budget", num("capex"))}
+                  {field("ltv", "LTV %", num("ltv"))}
+                  {field("rate", "Interest rate %", num("rate"))}
+                  {field("amort", "Amortisation (yrs, 0 = IO)", num("amort"))}
+                  {field("hold", "Hold (yrs)", num("hold", "1"))}
+                  {field("growth", "NOI growth %/yr", num("growth"))}
+                  {field("exitcap", "Exit cap %", num("exitcap"))}
+                  {field("plan", "Business plan", <textarea id="plan" value={vals.plan} onChange={(e) => setField("plan", e.target.value)} />, true)}
+                  {field("om", "Anything else from the OM (optional)", <textarea id="om" placeholder="Paste a few lines: rent roll notes, lease terms, sponsor, tenancy. No confidential data please." value={vals.om} onChange={(e) => setField("om", e.target.value)} />, true)}
+                </div>
+                <p className="hint">Assumes 2% closing and 2% sale costs; capex funded from equity in year 1. Nothing you type here is stored.</p>
+              </details>
             </form>
 
-            {/* RIGHT: outputs */}
-            <div className="stack">
-              <div className="card">
-                <h2>The numbers <small>{D.name}</small></h2>
-                <div className="metrics">
-                  {!M ? (
-                    <div className="metric"><span className="k">Waiting</span><span className="n">Add price, NOI, hold and exit cap to see the numbers.</span></div>
-                  ) : tiles.map(([k, v, n, cls]) => (
-                    <div className={"metric " + cls} key={k}><span className="k">{k}</span><span className="v">{v}</span><span className="n">{n}</span></div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="card">
-                <h2>Levered IRR sensitivity <small>exit cap × NOI growth</small></h2>
-                <div className="scroll">
-                  {M && (
+            {/* STEP 2: the numbers */}
+            <div className="card step" ref={numbersRef}>
+              <div className="step-head"><span className="step-n">2</span><h2>The numbers{M && D.name ? <small>{D.name}</small> : null}</h2></div>
+              {!M ? (
+                <p className="empty">Your debt metrics and returns appear here once step 1 is done.{D.name || D.price ? " Still missing: " + missingCore(D) + "." : ""}</p>
+              ) : (
+                <>
+                  <div className="metrics">
+                    {tiles.map(([k, v, n, cls]) => (
+                      <div className={"metric " + cls} key={k}><span className="k">{k}</span><span className="v">{v}</span><span className="n">{n}</span></div>
+                    ))}
+                  </div>
+                  <h3 className="sub">Levered IRR sensitivity <small>exit cap × NOI growth</small></h3>
+                  <div className="scroll">
                     <table className="sens">
                       <thead><tr><th>NOI growth ↓ / exit cap →</th>{caps.map((x) => <th key={x}>{x.toFixed(2)}%</th>)}</tr></thead>
                       <tbody>
@@ -339,46 +357,48 @@ export default function DealScreen() {
                         ))}
                       </tbody>
                     </table>
-                  )}
-                </div>
-                {M && <p className="hint">Outlined cell is your base case. Red under 8%, amber 8–13%, green 13%+ levered IRR.</p>}
-              </div>
-
-              <div className="card" ref={aiRef}>
-                <div className="row" style={{ justifyContent: "space-between" }}>
-                  <div className="ellie-id">
-                    <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
-                    <div><h2 style={{ margin: 0 }}>Ellie's first pass</h2><small>Fifth Dimension's AI analyst</small></div>
                   </div>
-                  <div className="row">
-                    <button type="button" className="primary" disabled={running} onClick={() => runAI(false)}>Get Ellie's first pass</button>
-                    <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>Copy IC brief</button>
-                    {soloBtn && <button type="button" className="ghost" onClick={openSolo}>Go deeper in Solo</button>}
-                  </div>
-                </div>
-                <p className="status">{aiStatus}</p>
-                <div id="ai" dangerouslySetInnerHTML={{ __html: md(aiText) }} />
-              </div>
-
-              {leadVisible && (
-                <form className="card capture" ref={leadRef} noValidate onSubmit={submitLead}>
-                  <h2>Where should we send your first pass?</h2>
-                  <p style={{ margin: "0 0 10px", maxWidth: "70ch" }}>Add your name and work email to see Ellie's first pass on this page. We'll also email you a copy as a one-page PDF, with a link back to this screen so you can rerun it.</p>
-                  {!(leadResult && leadResult.ran) && (
-                    <div className="fields">
-                      <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
-                      <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
-                    </div>
-                  )}
-                  <div className="row" style={{ marginTop: 12 }}>
-                    {!(leadResult && leadResult.ran) && <button type="submit" className="primary" disabled={lBusy}>Get Ellie's first pass</button>}
-                    <span className="status">{lStatus}</span>
-                  </div>
-                  <p className="hint" style={{ margin: "10px 0 0" }}>We'll use these details to send your brief and to follow up about Fifth Dimension. Unsubscribe any time.</p>
-                  {leadResult && <LeadResult r={leadResult} />}
-                </form>
+                  <p className="hint">Outlined cell is your base case. Red under 8%, amber 8–13%, green 13%+ levered IRR.</p>
+                </>
               )}
             </div>
+
+            {/* STEP 3: Ellie's first pass */}
+            <div className="card step" ref={aiRef}>
+              <div className="step-head">
+                <span className="step-n">3</span>
+                <div className="ellie-id">
+                  <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
+                  <div><h2 style={{ margin: 0 }}>Get Ellie's first pass</h2><small>Fifth Dimension's AI analyst</small></div>
+                </div>
+              </div>
+              <div className="row">
+                <button type="button" className="primary" disabled={running || !M} onClick={() => runAI(false)}>Get Ellie's first pass</button>
+                <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>Copy IC brief</button>
+                {soloBtn && <button type="button" className="ghost" onClick={openSolo}>Go deeper in Solo</button>}
+              </div>
+              <p className="status">{M ? aiStatus : "Complete steps 1 and 2 first."}</p>
+              <div id="ai" dangerouslySetInnerHTML={{ __html: md(aiText) }} />
+            </div>
+
+            {leadVisible && (
+              <form className="card capture" ref={leadRef} noValidate onSubmit={submitLead}>
+                <h2>Where should we send your first pass?</h2>
+                <p style={{ margin: "0 0 10px", maxWidth: "70ch" }}>Add your name and work email to see Ellie's first pass on this page. We'll also email you a copy as a one-page PDF, with a link back to this screen so you can rerun it.</p>
+                {!(leadResult && leadResult.ran) && (
+                  <div className="fields">
+                    <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
+                    <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
+                  </div>
+                )}
+                <div className="row" style={{ marginTop: 12 }}>
+                  {!(leadResult && leadResult.ran) && <button type="submit" className="primary" disabled={lBusy}>Get Ellie's first pass</button>}
+                  <span className="status">{lStatus}</span>
+                </div>
+                <p className="hint" style={{ margin: "10px 0 0" }}>We'll use these details to send your brief and to follow up about Fifth Dimension. Unsubscribe any time.</p>
+                {leadResult && <LeadResult r={leadResult} />}
+              </form>
+            )}
           </div>
 
           <footer>Illustrative tool for discussion. In this prototype, Ellie's first pass is generated by Claude; in production it would run on 5D's own technology. Metrics are simple, transparent arithmetic on the inputs you give; the first pass is AI-generated and can be wrong, so treat it as an analyst's draft to check, not advice. Market context is not live data. Lead capture and email delivery are mocked up here: in production the form posts to HubSpot, which sends the brief.</footer>
