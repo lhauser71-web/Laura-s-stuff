@@ -97,7 +97,7 @@ export default async function handler(req) {
     const facts = String(body.facts || "").slice(0, MAX_TEXT);
     if (!facts.trim()) return json(400, { code: "bad_request" });
     content = [{ type: "text", text: firstPassPrompt(facts) }];
-    maxTokens = 1400;
+    maxTokens = 6000; // covers adaptive thinking plus the ~420-word note
   } else if (body.task === "extract") {
     const text = String(body.text || "").slice(0, MAX_TEXT).trim();
     const img = body.image;
@@ -110,7 +110,7 @@ export default async function handler(req) {
       content.push({ type: isDoc ? "document" : "image", source: { type: "base64", media_type: img.media_type, data: img.data } });
     }
     content.push({ type: "text", text: extractPrompt(text) });
-    maxTokens = 1200;
+    maxTokens = 4000; // covers adaptive thinking plus the JSON
   } else {
     return json(400, { code: "bad_request" });
   }
@@ -125,6 +125,9 @@ export default async function handler(req) {
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5",
       max_tokens: maxTokens,
+      // Sonnet 5.5 thinks before answering by default, and thinking counts toward max_tokens and is billed as output.
+      // Low effort keeps that short: these are bounded, well-specified tasks. Override with ANTHROPIC_EFFORT.
+      output_config: { effort: process.env.ANTHROPIC_EFFORT || "low" },
       stream: true,
       messages: [{ role: "user", content }],
     }),
@@ -159,6 +162,10 @@ export default async function handler(req) {
             try { ev = JSON.parse(line.slice(5)); } catch { continue; }
             if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") {
               controller.enqueue(enc.encode(ev.delta.text));
+            } else if (ev.type === "message_delta" && ev.delta && ev.delta.stop_reason === "max_tokens") {
+              // Ran out of room mid-reply: flag it so the page never shows or emails a cut-off note.
+              console.error("Ellie reply hit max_tokens");
+              controller.enqueue(enc.encode("\u0000ERROR"));
             } else if (ev.type === "error") {
               controller.enqueue(enc.encode("\u0000ERROR"));
             }

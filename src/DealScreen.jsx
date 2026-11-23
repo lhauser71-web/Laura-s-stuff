@@ -236,7 +236,7 @@ export default function DealScreen() {
     setExample("blank");
     clearAI();
     setInputsOpen(true);
-    setTzStatus("Ellie Jr. filled " + found + " fields from the document. Add what's missing below to see the numbers.");
+    setTzStatus("Ellie Jr. filled " + found + " fields from the document. Check them below, and add anything that's missing.");
     autoNumbersRef.current = true;
   }
 
