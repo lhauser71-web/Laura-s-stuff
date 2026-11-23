@@ -116,7 +116,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
               <td width="84" valign="top"><img src="/ellie.webp" width="72" height="72" alt="Ellie" style={{ display: "block", border: 0, borderRadius: "50%" }} /></td>
               <td valign="top" style={{ paddingLeft: 6 }}>
                 <div style={{ fontFamily: DISPLAY, fontSize: 28, lineHeight: 1.05, textTransform: "uppercase", color: "#201d1d" }}>Want Ellie to analyze actual documents?</div>
-                <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.6 }}>In Solo, Ellie reads the whole package (the OM, the rent roll, the T-12, the loan docs), checks one document against another, and links every figure back to the clause, cell or page it came from. Uploaded files are protected and never used to train large language models.</p>
+                <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.6 }}>Ellie reads the whole package (the OM, the rent roll, the T-12, the loan docs), cross checks the documents and provides an accurate, in depth analysis. Uploaded files are protected and never used to train large language models.</p>
               </td>
             </tr></tbody></table>
             <table {...tbl}><tbody><tr><td align="center" style={{ paddingTop: 22 }}>
