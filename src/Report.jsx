@@ -90,7 +90,7 @@ export default function Report({ text, running, score }) {
 
       {flags.length > 0 && (
         <section className="rp-sec" aria-label="Red flags">
-          <h3 className="rp-h">Red flags <small>Potential blockers</small></h3>
+          <h3 className="rp-h">Red flags</h3>
           <ul className="rp-flags">
             {flags.map((f, i) => (
               <li key={i}>

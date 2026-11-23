@@ -206,7 +206,7 @@ function layout(ctx, b, k, dry) {
       return { f, body, check, hh };
     });
     const h = 14 * k + 19 * k * 0.9 + 9 * k + rows.reduce((a, r) => a + r.hh + 5 * k, 0) + pad - 5 * k;
-    let yy = card(h, "RED FLAGS", "POTENTIAL BLOCKERS");
+    let yy = card(h, "RED FLAGS");
     for (const r of rows) {
       const red = RAG.red;
       rect(M + pad, yy, iw, r.hh, mix(C.white, red, 0.04), { borderColor: mix(C.rule, red, 0.3), borderWidth: 0.6 });

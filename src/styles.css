@@ -272,7 +272,7 @@ button.primary[disabled]{opacity:.45}
 .rp-bar.rag-red .rp-bar-segs i.on{background:#ff5a4f}
 .rp-bar-scale{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a827d;margin-top:5px}
 
-/* Red flags: potential blockers */
+/* Red flags */
 .rp-flags{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .rp-flags li{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border:1px solid color-mix(in srgb,var(--r-red) 30%,var(--rule));border-left:4px solid var(--r-red);background:color-mix(in srgb,var(--r-red) 4%,#fff)}
 .rp-x{flex:none;width:34px;height:34px;border-radius:50%;background:var(--r-red);color:#fff;display:grid;place-items:center}
