@@ -477,7 +477,7 @@ export default function DealScreen() {
             <div className="solo-bar">Fifth Dimension · <span>Solo</span></div>
             <div className="ellie-id" style={{ marginBottom: 8 }}>
               <img className="ellie lg" src="/ellie.webp" alt="Ellie" width="72" height="72" />
-              <h2 id="solo-title" style={{ margin: 0 }}>Want Ellie to analyze actual documents?</h2>
+              <h2 id="solo-title" style={{ margin: 0 }}>Want Ellie to analyze the real deal?</h2>
             </div>
             <p>Ellie reads the whole package (the OM, the rent roll, the T-12, the loan docs), cross checks the documents and provides an accurate, in depth analysis.</p>
             <table className="cmp">
