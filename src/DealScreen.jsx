@@ -37,10 +37,8 @@ export default function DealScreen() {
   const [example, setExample] = useState("blank");
   const [vals, setVals] = useState(EXAMPLES.blank);
   const [inputsOpen, setInputsOpen] = useState(false);
-  const [screen, setScreen] = useState("deal"); // "deal" = enter the deal, "numbers" = the numbers + Ellie
   const [askLead, setAskLead] = useState(false);
   const staleRef = useRef(false);
-  const pushedRef = useRef(false);
   const [tags, setTags] = useState({});
 
   const [tz, setTz] = useState("");
@@ -72,28 +70,20 @@ export default function DealScreen() {
   const D = useMemo(() => parseVals(vals), [vals]);
   const M = useMemo(() => calc(D), [D]);
 
-  // ---------- screens: "/" is enter the deal, "/numbers" is the numbers + Ellie's first pass ----------
+  // ---------- one screen: the numbers appear under the deal as soon as there is enough to calculate ----------
   useEffect(() => {
-    const onNumbers = () => window.location.pathname.replace(/\/+$/, "") === "/numbers";
-    // A fresh load of /numbers has no deal in memory, so start from the first screen.
-    if (onNumbers()) { try { window.history.replaceState(null, "", "/" + window.location.search); } catch {} }
-    const onPop = () => { pushedRef.current = onNumbers(); setScreen(onNumbers() ? "numbers" : "deal"); window.scrollTo(0, 0); };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+    // Old links to /numbers land on the single page.
+    if (window.location.pathname.replace(/\/+$/, "") === "/numbers") { try { window.history.replaceState(null, "", "/" + window.location.search); } catch {} }
   }, []);
 
-  function goToNumbers() {
-    if (!M) return;
-    try { window.history.pushState(null, "", "/numbers" + window.location.search); pushedRef.current = true; } catch { pushedRef.current = false; }
-    setScreen("numbers");
-    window.scrollTo(0, 0);
-  }
-
-  function backToDeal() {
-    if (pushedRef.current) { pushedRef.current = false; try { window.history.back(); return; } catch {} }
-    setScreen("deal");
-    window.scrollTo(0, 0);
-  }
+  // After sample data or Ellie fills the deal, bring the numbers into view.
+  const numbersRef = useRef(null);
+  const autoNumbersRef = useRef(false);
+  useEffect(() => {
+    if (!autoNumbersRef.current) return;
+    autoNumbersRef.current = false;
+    if (M && numbersRef.current) setTimeout(() => numbersRef.current && numbersRef.current.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+  }, [M, vals]);
 
   function startEllie() {
     if (leadDone) { runAI(true); return; }
@@ -110,7 +100,7 @@ export default function DealScreen() {
 
   function loadExample(k) {
     setExample(k);
-    setVals(EXAMPLES[k]);
+    setVals({ ...EXAMPLES[k] });
     setTags({});
     clearAI();
   }
@@ -121,7 +111,8 @@ export default function DealScreen() {
     if (fileRef.current) fileRef.current.value = "";
     setFileName("");
     setInputsOpen(true);
-    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin. Check the details below, then see the numbers.");
+    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin.");
+    autoNumbersRef.current = true;
   }
 
   function setField(id, value) {
@@ -194,13 +185,20 @@ export default function DealScreen() {
     const plan = v("plan"); if (plan) { nv.plan = String(plan); nt.plan = { text: "Summarised from the document", cls: "" }; } else nv.plan = "";
     const om = v("om"); if (om) { nv.om = Array.isArray(om) ? om.join(" ") : String(om); nt.om = { text: "Pulled from the document", cls: "" }; } else nv.om = "";
     ["opex", "capex", "ltv", "rate", "amort", "hold", "growth", "exitcap"].forEach((id) => { nt[id] = { text: "Your assumption", cls: "you" }; });
+    // Listings rarely state an exit cap: default to going-in cap + 0.25% so the numbers can show straight away.
+    const pNum = parseFloat(nv.price), nNum = parseFloat(nv.noi);
+    if (!isFinite(parseFloat(nv.exitcap)) && pNum > 0 && isFinite(nNum)) {
+      nv.exitcap = Math.round(((nNum / pNum) * 100 + 0.25) * 20) / 20;
+      nt.exitcap = { text: "Assumed: going-in cap + 0.25%. Change it if you disagree", cls: "you" };
+    }
 
     setVals(nv);
     setTags(nt);
     setExample("blank");
     clearAI();
     setInputsOpen(true);
-    setTzStatus("Ellie filled " + found + " fields from the document. Check them, then set your own assumptions for costs, debt, growth and exit below.");
+    setTzStatus("Ellie filled " + found + " fields from the document. Add what's missing below to see the numbers.");
+    autoNumbersRef.current = true;
   }
 
   // ---------- AI first pass ----------
@@ -300,7 +298,6 @@ export default function DealScreen() {
 
       <main>
         <section>
-          {screen === "deal" ? (
           <div className="steps">
             {/* STEP 1: enter the deal */}
             <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
@@ -350,54 +347,47 @@ export default function DealScreen() {
                 <p className="hint">Assumes 2% closing and 2% sale costs; capex funded from equity in year 1. Nothing you type here is stored.</p>
               </details>
 
-              <div className="row next-row">
-                <button type="button" className="primary" disabled={!M} onClick={goToNumbers}>See the numbers →</button>
-                {!M && <span className="status">{D.name || D.price ? "Still missing: " + missingCore(D) + "." : "Paste a listing or use sample data first."}</span>}
+              <div className="numbers-inline" ref={numbersRef}>
+                {M ? (
+                  <>
+                    <h2 className="numbers-h">The numbers{D.name ? <small>{D.name}</small> : null}</h2>
+                      <div className="metrics">
+                        {tiles.map(([k, v, n, cls]) => (
+                          <div className={"metric " + cls} key={k}><span className="k">{k}</span><span className="v">{v}</span><span className="n">{n}</span></div>
+                        ))}
+                      </div>
+                      <h3 className="sub">Levered IRR sensitivity <small>exit cap × NOI growth</small></h3>
+                      <div className="scroll">
+                        <table className="sens">
+                          <thead><tr><th>NOI growth ↓ / exit cap →</th>{caps.map((x) => <th key={x}>{x.toFixed(2)}%</th>)}</tr></thead>
+                          <tbody>
+                            {gs.map((g) => (
+                              <tr key={g}>
+                                <th>{g.toFixed(1)}%</th>
+                                {caps.map((x) => {
+                                  const r = model(D, g, x).irr;
+                                  const cls = !isFinite(r) ? "lo" : r < 0.08 ? "lo" : r < 0.13 ? "mid" : "hi";
+                                  const base = g === D.growth && x === D.exitcap ? " base" : "";
+                                  return <td key={x} className={cls + base}>{isFinite(r) ? pct(r, 1) : "n/m"}</td>;
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="hint">Outlined cell is your base case. Red under 8%, amber 8–13%, green 13%+ levered IRR.</p>
+
+                  </>
+                ) : (
+                  <div className="row next-row">
+                    <button type="button" className="primary" disabled>Unlock the numbers with a deal</button>
+                    {D.name || isFinite(D.price) ? <span className="status">{"Still missing: " + missingCore(D) + "."}</span> : null}
+                  </div>
+                )}
               </div>
             </form>
 
-          </div>
-          ) : (
-          <div className="steps">
-            <div className="back-row">
-              <button type="button" className="back" onClick={backToDeal}>← Edit the deal</button>
-            </div>
-
-            <div className="card step">
-              <h2>The numbers{D.name ? <small>{D.name}</small> : null}</h2>
-              {!M ? (
-                <p className="empty">Add your deal first. <button type="button" className="linkish" onClick={backToDeal}>Go back and enter it</button></p>
-              ) : (
-                <>
-                  <div className="metrics">
-                    {tiles.map(([k, v, n, cls]) => (
-                      <div className={"metric " + cls} key={k}><span className="k">{k}</span><span className="v">{v}</span><span className="n">{n}</span></div>
-                    ))}
-                  </div>
-                  <h3 className="sub">Levered IRR sensitivity <small>exit cap × NOI growth</small></h3>
-                  <div className="scroll">
-                    <table className="sens">
-                      <thead><tr><th>NOI growth ↓ / exit cap →</th>{caps.map((x) => <th key={x}>{x.toFixed(2)}%</th>)}</tr></thead>
-                      <tbody>
-                        {gs.map((g) => (
-                          <tr key={g}>
-                            <th>{g.toFixed(1)}%</th>
-                            {caps.map((x) => {
-                              const r = model(D, g, x).irr;
-                              const cls = !isFinite(r) ? "lo" : r < 0.08 ? "lo" : r < 0.13 ? "mid" : "hi";
-                              const base = g === D.growth && x === D.exitcap ? " base" : "";
-                              return <td key={x} className={cls + base}>{isFinite(r) ? pct(r, 1) : "n/m"}</td>;
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <p className="hint">Outlined cell is your base case. Red under 8%, amber 8–13%, green 13%+ levered IRR.</p>
-                </>
-              )}
-            </div>
-
+            {M && (<>
             <div className="card step ellie-card" ref={aiRef}>
               <div className="ellie-id" style={{ marginBottom: 14 }}>
                 <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
@@ -445,8 +435,8 @@ export default function DealScreen() {
                 <LeadResult r={leadResult} />
               </div>
             )}
+            </>)}
           </div>
-          )}
 
           <div className="foot-logo"><img src="/logo-ink.webp" alt="Fifth Dimension" height="20" /></div>
         </section>
