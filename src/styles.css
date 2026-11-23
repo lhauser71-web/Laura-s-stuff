@@ -142,3 +142,19 @@ h3.sub small{font-family:var(--body);font-size:11px;letter-spacing:.1em;color:va
 .steps ~ footer,.steps ~ .foot-logo{max-width:980px;margin-left:auto;margin-right:auto}
 .step .metrics{grid-template-columns:repeat(3,1fr)}
 @media (max-width:560px){.step .metrics{grid-template-columns:1fr 1fr}}
+/* Step 3 screen */
+.back-row{display:flex;justify-content:space-between;align-items:center}
+button.back,button.linkish{background:none;border:0;padding:4px 0;font-family:var(--body);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);cursor:pointer}
+button.back:hover,button.linkish:hover{color:var(--accent)}
+button.linkish{text-transform:none;letter-spacing:0;font-size:13px;text-decoration:underline;color:var(--accent)}
+.crumb{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.summary{border:1px solid var(--rule);background:#faf9f8;padding:12px 14px;margin:0 0 18px}
+.deal-line{font-size:13px;color:var(--muted)} .deal-line b{color:var(--ink);font-weight:500}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}
+.mini div{display:flex;flex-direction:column;gap:2px}
+.mini span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mini b{font-family:var(--display);font-weight:400;font-size:26px;line-height:1}
+@media (max-width:560px){.mini{grid-template-columns:1fr 1fr}}
+.step .fields.two{grid-template-columns:1fr 1fr}
+@media (max-width:560px){.step .fields.two{grid-template-columns:1fr}}
+.step.next{border:2px solid var(--ink)}

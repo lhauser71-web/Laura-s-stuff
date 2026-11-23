@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { EXAMPLES, EXAMPLE_OPTIONS, FIELDS, NUMERIC, ASSETS, CCYS, UNITS, SOLO_URL } from "./data.js";
 import { calc, model, money, pct, bps, sym, perUnit, facts } from "./lib/finance.js";
 import { md, verdictOf } from "./lib/markdown.js";
@@ -37,6 +37,8 @@ export default function DealScreen() {
   const [example, setExample] = useState("blank");
   const [vals, setVals] = useState(EXAMPLES.blank);
   const [inputsOpen, setInputsOpen] = useState(false);
+  const [screen, setScreen] = useState("deal"); // "deal" = steps 1-2, "ellie" = step 3
+  const staleRef = useRef(false);
   const numbersRef = useRef(null);
   const [tags, setTags] = useState({});
 
@@ -55,7 +57,6 @@ export default function DealScreen() {
   const soloRef = useRef(null);
   const [soloNote, setSoloNote] = useState(false);
 
-  const [leadVisible, setLeadVisible] = useState(false);
   const [leadDone, setLeadDone] = useState(false);
   const [lName, setLName] = useState("");
   const [lEmail, setLEmail] = useState("");
@@ -63,12 +64,34 @@ export default function DealScreen() {
   const [lBusy, setLBusy] = useState(false);
   const [leadResult, setLeadResult] = useState(null);
 
-  const leadRef = useRef(null);
   const nameRef = useRef(null);
   const aiRef = useRef(null);
 
   const D = useMemo(() => parseVals(vals), [vals]);
   const M = useMemo(() => calc(D), [D]);
+
+  // ---------- screens: "/" is enter the deal + the numbers, "/first-pass" is Ellie ----------
+  useEffect(() => {
+    const onFirstPass = () => window.location.pathname.replace(/\/+$/, "") === "/first-pass";
+    // A fresh load of /first-pass has no deal in memory, so start from the home screen.
+    if (onFirstPass()) window.history.replaceState(null, "", "/" + window.location.search);
+    const onPop = () => { setScreen(onFirstPass() ? "ellie" : "deal"); window.scrollTo(0, 0); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  function goToEllie() {
+    if (!M) return;
+    window.history.pushState(null, "", "/first-pass" + window.location.search);
+    setScreen("ellie");
+    window.scrollTo(0, 0);
+    if (leadDone && (!aiRan || staleRef.current)) runAI(true);
+    else if (!leadDone) setTimeout(() => nameRef.current && nameRef.current.focus(), 50);
+  }
+
+  function backToDeal() {
+    window.history.back();
+  }
 
   // ---------- form ----------
   function clearAI() {
@@ -100,7 +123,7 @@ export default function DealScreen() {
   function setField(id, value) {
     setVals((v) => ({ ...v, [id]: value }));
     setTags((t) => (t[id] && t[id].cls !== "you" ? { ...t, [id]: { text: "Edited by you", cls: "you" } } : t));
-    if (aiRan) setAiStatus("Inputs changed since the last run. Run the first pass again to refresh it.");
+    if (aiRan) { staleRef.current = true; setAiStatus("Inputs changed since the last run. Run the first pass again to refresh it."); }
   }
 
   const field = (id, label, input, full) => (
@@ -191,12 +214,7 @@ export default function DealScreen() {
 
   async function runAI(fromLead = false) {
     if (!leadDone && !fromLead) {
-      setLeadVisible(true);
-      setAiStatus("Add your name and work email below to get the first pass, plus a PDF copy by email.");
-      setTimeout(() => {
-        leadRef.current && leadRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-        setTimeout(() => nameRef.current && nameRef.current.focus(), 350);
-      }, 0);
+      nameRef.current && nameRef.current.focus();
       return null;
     }
     if (!M) { setAiStatus("Add price, NOI, hold and exit cap first."); return null; }
@@ -211,6 +229,7 @@ export default function DealScreen() {
       const res = await askEllie({ task: "firstpass", facts: facts(D, M) }, { signal: ctrl.signal, onText: ({ text }) => setAiText(text) });
       setAiText(res.text);
       setAiRan(true);
+      staleRef.current = false;
       setSoloBtn(true);
       if (!soloShownRef.current) { soloShownRef.current = true; setTimeout(openSolo, 1500); }
       setAiStatus("First pass done in " + Math.round((performance.now() - t0) / 1000) + "s. Check it before you rely on it.");
@@ -243,7 +262,6 @@ export default function DealScreen() {
     setLeadDone(true);
     setLBusy(true);
     setLStatus("Ellie is on it…");
-    aiRef.current && aiRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     const out = await runAI(true);
     setLeadResult({ name, email, text: out || "", ran: !!out, D, M });
     setLStatus("Demo mode: in production this goes straight to HubSpot.");
@@ -271,13 +289,13 @@ export default function DealScreen() {
       <header className="top">
         <div className="brand">
           <h1>Deal Screen: A Senior analyst <span>on every deal</span></h1>
-          <p>Put in the headline numbers. Get the debt metrics, a returns sensitivity and an IC-style first pass in less than a minute: verdict, red flags, broker questions and the data-room list.</p>
         </div>
         <img className="mark-top" src="/mark5d.webp" alt="5D" height="88" />
       </header>
 
       <main>
         <section>
+          {screen === "deal" ? (
           <div className="steps">
             {/* STEP 1: enter the deal */}
             <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
@@ -363,43 +381,88 @@ export default function DealScreen() {
               )}
             </div>
 
-            {/* STEP 3: Ellie's first pass */}
+            {/* Hand-off to step 3, on its own screen */}
+            <div className="card step next">
+              <div className="step-head">
+                <span className="step-n">3</span>
+                <div className="ellie-id">
+                  <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
+                  <div><h2 style={{ margin: 0 }}>Get Ellie's first pass</h2><small>Verdict, red flags, broker questions and the data-room list</small></div>
+                </div>
+              </div>
+              <div className="row">
+                <button type="button" className="primary" disabled={!M} onClick={goToEllie}>Run Ellie's first pass →</button>
+                {!M && <span className="status">Complete steps 1 and 2 first.</span>}
+              </div>
+            </div>
+          </div>
+          ) : (
+          <div className="steps">
+            <div className="back-row">
+              <button type="button" className="back" onClick={backToDeal}>← Back to the deal</button>
+              <span className="crumb">Step 3 of 3</span>
+            </div>
+
             <div className="card step" ref={aiRef}>
               <div className="step-head">
                 <span className="step-n">3</span>
                 <div className="ellie-id">
                   <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
-                  <div><h2 style={{ margin: 0 }}>Get Ellie's first pass</h2><small>Fifth Dimension's AI analyst</small></div>
+                  <div><h2 style={{ margin: 0 }}>Ellie's first pass</h2><small>Fifth Dimension's AI analyst</small></div>
                 </div>
               </div>
-              <div className="row">
-                <button type="button" className="primary" disabled={running || !M} onClick={() => runAI(false)}>Get Ellie's first pass</button>
-                <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>Copy IC brief</button>
-                {soloBtn && <button type="button" className="ghost" onClick={openSolo}>Go deeper in Solo</button>}
-              </div>
-              <p className="status">{M ? aiStatus : "Complete steps 1 and 2 first."}</p>
-              <div id="ai" dangerouslySetInnerHTML={{ __html: md(aiText) }} />
+
+              {!M ? (
+                <p className="empty">Add your deal first. <button type="button" className="linkish" onClick={backToDeal}>Go back to step 1</button></p>
+              ) : (
+                <>
+                  <div className="summary">
+                    <div className="deal-line"><b>{D.name || "Your deal"}</b>{[D.asset, D.market, money(D.price, D.ccy)].filter(Boolean).map((x) => <span key={x}> · {x}</span>)}</div>
+                    <div className="mini">
+                      <div><span>Going-in cap</span><b>{pct(M.cap, 2)}</b></div>
+                      <div><span>DSCR</span><b>{isFinite(M.dscr) ? M.dscr.toFixed(2) + "x" : "no debt"}</b></div>
+                      <div><span>Debt yield</span><b>{isFinite(M.dy) ? pct(M.dy, 1) : "–"}</b></div>
+                      <div><span>Levered IRR</span><b>{isFinite(M.irr) ? pct(M.irr, 1) : "n/m"}</b></div>
+                    </div>
+                  </div>
+
+                  {!leadDone ? (
+                    <form className="capture-in" noValidate onSubmit={submitLead}>
+                      <h3 className="sub" style={{ marginTop: 0 }}>Where should we send your first pass?</h3>
+                      <p style={{ margin: "0 0 12px", maxWidth: "70ch" }}>Add your name and work email to see Ellie's first pass here. We'll also email you a one-page PDF copy, with a link back so you can rerun it.</p>
+                      <div className="fields two">
+                        <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
+                        <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
+                      </div>
+                      <div className="row" style={{ marginTop: 14 }}>
+                        <button type="submit" className="primary" disabled={lBusy}>Get Ellie's first pass</button>
+                        {lStatus && <span className="status">{lStatus}</span>}
+                      </div>
+                      <p className="hint" style={{ margin: "10px 0 0" }}>We'll use these details to send your brief and to follow up about Fifth Dimension. Unsubscribe any time.</p>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="row">
+                        <button type="button" className={aiRan ? "ghost" : "primary"} disabled={running} onClick={() => runAI(true)}>{aiRan ? "Run it again" : "Get Ellie's first pass"}</button>
+                        <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>Copy IC brief</button>
+                        {soloBtn && <button type="button" className="ghost" onClick={openSolo}>Go deeper in Solo</button>}
+                      </div>
+                      <p className="status">{aiStatus}</p>
+                      <div id="ai" dangerouslySetInnerHTML={{ __html: md(aiText) }} />
+                    </>
+                  )}
+                </>
+              )}
             </div>
 
-            {leadVisible && (
-              <form className="card capture" ref={leadRef} noValidate onSubmit={submitLead}>
-                <h2>Where should we send your first pass?</h2>
-                <p style={{ margin: "0 0 10px", maxWidth: "70ch" }}>Add your name and work email to see Ellie's first pass on this page. We'll also email you a copy as a one-page PDF, with a link back to this screen so you can rerun it.</p>
-                {!(leadResult && leadResult.ran) && (
-                  <div className="fields">
-                    <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
-                    <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
-                  </div>
-                )}
-                <div className="row" style={{ marginTop: 12 }}>
-                  {!(leadResult && leadResult.ran) && <button type="submit" className="primary" disabled={lBusy}>Get Ellie's first pass</button>}
-                  <span className="status">{lStatus}</span>
-                </div>
-                <p className="hint" style={{ margin: "10px 0 0" }}>We'll use these details to send your brief and to follow up about Fifth Dimension. Unsubscribe any time.</p>
-                {leadResult && <LeadResult r={leadResult} />}
-              </form>
+            {leadResult && (
+              <div className="card step">
+                {lStatus && <p className="hint" style={{ marginTop: 0 }}>{lStatus}</p>}
+                <LeadResult r={leadResult} />
+              </div>
             )}
           </div>
+          )}
 
           <footer>Illustrative tool for discussion. In this prototype, Ellie's first pass is generated by Claude; in production it would run on 5D's own technology. Metrics are simple, transparent arithmetic on the inputs you give; the first pass is AI-generated and can be wrong, so treat it as an analyst's draft to check, not advice. Market context is not live data. Lead capture and email delivery are mocked up here: in production the form posts to HubSpot, which sends the brief.</footer>
           <div className="foot-logo"><img src="/logo-ink.webp" alt="Fifth Dimension" height="20" /></div>
@@ -492,7 +555,7 @@ function LeadResult({ r }) {
           </details>
         </>
       ) : (
-        <p style={{ margin: "0 0 4px" }}><strong>Thanks, {first}. We have your details.</strong> The first pass couldn't run just now, so nothing has been emailed yet. Click Get Ellie's first pass to try again.</p>
+        <p style={{ margin: "0 0 4px" }}><strong>Thanks, {first}. We have your details.</strong> The first pass couldn't run just now, so nothing has been emailed yet. Click Get Ellie's first pass above to try again.</p>
       )}
       <details>
         <summary>What HubSpot records <span className="tag">connected later</span></summary>
