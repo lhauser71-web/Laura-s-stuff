@@ -128,7 +128,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
               <td valign="top" style={{ paddingLeft: 6 }}>
                 <div style={{ fontFamily: DISPLAY, fontSize: 28, lineHeight: 1.05, textTransform: "uppercase", color: "#201d1d" }}>Want AI in every deal <span style={{ color: "#f35202" }}>from the start?</span></div>
                 <div style={{ marginTop: 6, fontSize: 10.5, letterSpacing: ".08em", textTransform: "uppercase", color: "#6b6562" }}>Johnny Morris · Chief Product Officer, Fifth Dimension</div>
-                <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.6 }}>Book a 30-minute consultation with one of our real estate experts. We'll explore your current workflows and where there's room for AI optimization.</p>
+                <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.6 }}>Book a 30-minute call with one of our real estate AI experts. We'll look at how your team works today and where it can make the biggest difference.</p>
               </td>
             </tr></tbody></table>
             <table {...tbl}><tbody><tr><td align="center" style={{ paddingTop: 20 }}>

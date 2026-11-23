@@ -80,7 +80,7 @@ export function buildEmail(e) {
     <td valign="top" style="padding-left:6px">
       <div style="font-family:${DISPLAY};font-size:28px;line-height:1.05;text-transform:uppercase;color:#201d1d">Want AI in every deal <span style="color:#f35202">from the start?</span></div>
       <div style="margin-top:6px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#6b6562">Johnny Morris · Chief Product Officer, Fifth Dimension</div>
-      <p style="margin:8px 0 0;font-size:13px;line-height:1.6">Book a 30-minute consultation with one of our real estate experts. We'll explore your current workflows and where there's room for AI optimization.</p>
+      <p style="margin:8px 0 0;font-size:13px;line-height:1.6">Book a 30-minute call with one of our real estate AI experts. We'll look at how your team works today and where it can make the biggest difference.</p>
     </td>
   </tr></table>
   <table ${TBL}><tr><td align="center" style="padding-top:20px">
