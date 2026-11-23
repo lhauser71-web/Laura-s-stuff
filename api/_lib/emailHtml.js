@@ -66,7 +66,7 @@ export function buildEmail(e) {
     <td width="84" valign="top"><img src="${img("ellie")}" width="72" height="72" alt="Ellie" style="display:block;border:0;border-radius:50%"></td>
     <td valign="top" style="padding-left:6px">
       <div style="font-family:${DISPLAY};font-size:28px;line-height:1.05;text-transform:uppercase;color:#201d1d">Want Ellie to analyze the real deal?</div>
-      <p style="margin:8px 0 0;font-size:13px;line-height:1.6">Upload the whole package (the OM, the rent roll, the T-12, the loan docs), for a more accurate, in depth analysis. Uploaded files are protected and never used to train large language models.</p>
+      <p style="margin:8px 0 0;font-size:13px;line-height:1.6">Upload the whole package (the OM, the rent roll, the T-12, the loan docs) for a more accurate, in-depth analysis. Uploaded files are protected and never used to train large language models.</p>
     </td>
   </tr></table>
   <table ${TBL}><tr><td align="center" style="padding-top:22px">
@@ -110,7 +110,7 @@ export function buildEmail(e) {
     `Verdict: ${e.verdict}. ${e.verdictReason}`,
     e.kpis.map(([k, v]) => `${k} ${v}`).join(" · "),
     "",
-    "Upload the whole package (the OM, the rent roll, the T-12, the loan docs), for a more accurate, in depth analysis. Uploaded files are protected and never used to train large language models.",
+    "Upload the whole package (the OM, the rent roll, the T-12, the loan docs) for a more accurate, in-depth analysis. Uploaded files are protected and never used to train large language models.",
     `Start Solo free for 3 months: ${SOLO_URL}`,
     `Book a call with an expert: ${CONTACT_URL}`,
     "",
