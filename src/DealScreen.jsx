@@ -314,10 +314,8 @@ export default function DealScreen() {
                   <input type="file" ref={fileRef} accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
                     onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) fillFromTeaser({ file: f }); fileRef.current.value = ""; }} />
                 </label>
-                {fileName && <span className="file-name">{fileName}</span>}
-              </div>
-              <div className="row" style={{ marginTop: 14 }}>
                 <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
+                {fileName && <span className="file-name">{fileName}</span>}
               </div>
               {tzStatus && <p className="status">{tzStatus}</p>}
               <p className="hint">Public documents only. Keep the OM and rent roll for Solo.</p>
