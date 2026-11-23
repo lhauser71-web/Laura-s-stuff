@@ -4,6 +4,7 @@ import { calc, model, money, pct, bps, sym, perUnit, facts } from "./lib/finance
 import { md } from "./lib/markdown.js";
 import { askEllie, fileToImage } from "./lib/ellie.js";
 import { SAMPLE_BRIEFS } from "./sampleBriefs.js";
+import Report from "./Report.jsx";
 
 const AI_IDLE = "Ellie reads the numbers above plus your notes, then writes what a good senior analyst would put in front of IC.";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -59,6 +60,8 @@ export default function DealScreen() {
   const [aiStatus, setAiStatus] = useState(AI_IDLE);
   const [running, setRunning] = useState(false);
   const [soloBtn, setSoloBtn] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [screen, setScreen] = useState("deal"); // "deal" = steps 1-3, "results" = Ellie's report
   const ctrlRef = useRef(null);
   const soloShownRef = useRef(false);
   const soloRef = useRef(null);
@@ -77,9 +80,27 @@ export default function DealScreen() {
 
   // ---------- one screen: the numbers appear under the deal as soon as there is enough to calculate ----------
   useEffect(() => {
-    // Old links to /numbers land on the single page.
-    if (window.location.pathname.replace(/\/+$/, "") === "/numbers") { try { window.history.replaceState(null, "", "/" + window.location.search); } catch {} }
+    // Old /numbers links, and /results opened cold (nothing to show yet), land on the deal page.
+    const p = window.location.pathname.replace(/\/+$/, "");
+    if (p === "/numbers" || p === "/results") { try { window.history.replaceState(null, "", "/" + window.location.search); } catch {} }
+    const onPop = () => setScreen(window.location.pathname.replace(/\/+$/, "") === "/results" ? "results" : "deal");
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  function openResults() {
+    setScreen("results");
+    try { if (window.location.pathname !== "/results") window.history.pushState({ s: "results" }, "", "/results" + window.location.search); } catch {}
+    window.scrollTo(0, 0);
+  }
+  function backToDeal() {
+    if (window.history.state && window.history.state.s === "results") { window.history.back(); return; }
+    setScreen("deal");
+    try { window.history.replaceState(null, "", "/" + window.location.search); } catch {}
+  }
+  useEffect(() => {
+    if (screen === "deal" && leadDone) setTimeout(() => aiRef.current && aiRef.current.scrollIntoView({ block: "start" }), 0);
+  }, [screen]);
 
   // After sample data or Ellie fills the deal, bring the numbers into view.
   const numbersRef = useRef(null);
@@ -283,7 +304,7 @@ export default function DealScreen() {
       "\n\nSensitivity, assumptions and method: 2% closing and sale costs; capex from equity in year 1; IRR on annual cash flows.";
   }
   async function copyBrief() {
-    try { await navigator.clipboard.writeText(brief()); setAiStatus("IC brief copied."); }
+    try { await navigator.clipboard.writeText(brief()); setCopied(true); setTimeout(() => setCopied(false), 1800); }
     catch { setAiStatus("Copy was blocked by the browser. Select the text above and copy it."); }
   }
 
@@ -295,8 +316,8 @@ export default function DealScreen() {
     setLeadDone(true);
     setLBusy(true);
     setLStatus("");
-    // Go straight to Ellie's results.
-    setTimeout(() => aiRef.current && aiRef.current.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+    // Go straight to Ellie's results on their own screen.
+    openResults();
     await runAI(true);
     setLBusy(false);
   }
@@ -314,11 +335,62 @@ export default function DealScreen() {
     ["Equity cheque", money(M.equity, D.ccy), "incl. capex " + money(D.capex || 0, D.ccy), ""],
   ] : ["Going-in cap", "Price / unit", "DSCR", "Debt yield", "Leverage spread", "Breakeven occupancy", "Exit vs entry cap", "Levered IRR", "Equity cheque"].map((k) => [k, "—", "", "empty"]);
 
+  // Strength of a headline metric for the report's bars: fill on a fixed weak→strong scale, RAG on the grid's thresholds.
+  const clamp = (x) => Math.min(1, Math.max(0, x));
+  function score(label) {
+    if (!M) return null;
+    const l = String(label).toLowerCase();
+    const rag = (v, g, a, lowerBetter) => lowerBetter ? (v <= g ? "green" : v <= a ? "amber" : "red") : (v >= g ? "green" : v >= a ? "amber" : "red");
+    if (/irr/.test(l) && isFinite(M.irr)) return { fill: clamp((M.irr + 0.1) / 0.35), rag: rag(M.irr, 0.15, 0.1) };
+    if (/leverage spread|spread/.test(l)) return { fill: clamp((M.spread + 0.03) / 0.06), rag: rag(M.spread, 0.005, 0) };
+    if (/dscr/.test(l)) return isFinite(M.dscr) ? { fill: clamp((M.dscr - 0.8) / 1.2), rag: rag(M.dscr, 1.35, 1.2) } : { fill: 1, rag: "green" };
+    if (/exit cap/.test(l)) return { fill: clamp((M.exitSpread + 0.005) / 0.015), rag: rag(M.exitSpread, 0.0025, 0) };
+    if (/debt yield/.test(l) && isFinite(M.dy)) return { fill: clamp((M.dy - 0.05) / 0.1), rag: rag(M.dy, 0.09, 0.075) };
+    if (/multiple/.test(l)) return { fill: clamp((M.em - 0.5) / 1.5), rag: rag(M.em, 1.6, 1.3) };
+    if (/breakeven/.test(l)) return { fill: clamp((1 - M.beo) / 0.4), rag: rag(M.beo, 0.8, 0.88, true) };
+    return null;
+  }
+
   const caps = M ? [-0.25, 0, 0.25, 0.5, 0.75].map((x) => D.exitcap + x) : [];
   const gs = M ? [D.growth - 2, D.growth, D.growth + 2] : [];
 
   return (
     <>
+      {screen === "results" ? (
+        <div className="results-page">
+          <header className="rp-top">
+            <img src="/mark5d.webp" alt="5D" height="40" />
+            <span className="rp-top-t">Deal Screen</span>
+            <button type="button" className="rp-back" onClick={backToDeal}>← Back to the deal</button>
+          </header>
+          <main className="rp-main">
+            <section className="rp-deal" aria-label="The deal">
+              <div className="rp-kicker">Deal screen analysis · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</div>
+              <h1>{D.name || "Your deal"}</h1>
+              <div className="rp-deal-meta">{[D.asset, D.market, D.size ? D.size.toLocaleString() + " " + D.unit : ""].filter(Boolean).join(" · ")}</div>
+              {M && (
+                <div className="rp-kpis">
+                  {[["Price", money(D.price, D.ccy), ""], ...tiles.filter(([k]) => ["Going-in cap", "DSCR", "Leverage spread", "Levered IRR"].includes(k)).map(([k, v, , c]) => [k, v, c]), ["Equity multiple", M.em.toFixed(2) + "x", M.em >= 1.6 ? "good" : M.em >= 1.3 ? "warn" : "bad"]].map(([k, v, c]) => (
+                    <div className={"rp-kpi " + c} key={k}><span className="k">{k}</span><span className="v">{v}</span></div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <div className="rp-actions">
+              <button type="button" className="rp-btn" disabled={running || !M} onClick={() => runAI(true)}>Run it again</button>
+              <button type="button" className="rp-btn" disabled={!aiRan || running} onClick={copyBrief}>{copied ? "Copied ✓" : "Copy IC brief"}</button>
+              <a className="btn-primary" href={SOLO_URL} target="_blank" rel="noopener">Go deeper in Solo</a>
+            </div>
+            {!running && aiStatus && aiStatus !== AI_IDLE && <p className="rp-status">{aiStatus}</p>}
+
+            <Report text={aiText} running={running} score={score} />
+
+            <div className="rp-foot"><img src="/logo-white.webp" alt="Fifth Dimension" height="20" /></div>
+          </main>
+        </div>
+      ) : (
+      <>
       <header className="top">
         <div className="brand">
           <h1>Deal Screen: A Senior analyst <span>on every deal</span></h1>
@@ -453,13 +525,12 @@ export default function DealScreen() {
 
               {leadDone && (
                 <>
+                  <p style={{ margin: "0 0 12px" }}>{running ? "Ellie is writing your deal screen analysis…" : aiRan ? "Your deal screen analysis is ready." : "Run Ellie on this deal to get your analysis."}</p>
                   <div className="row">
-                    <button type="button" className={aiRan ? "ghost" : "primary"} disabled={running || !M} onClick={() => runAI(true)}>{aiRan ? "Run it again" : "Run Ellie's first pass"}</button>
-                    <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>Copy IC brief</button>
-                    {soloBtn && <button type="button" className="ghost" onClick={openSolo}>Go deeper in Solo</button>}
+                    {aiRan && <button type="button" className="primary" onClick={openResults}>Open your analysis →</button>}
+                    <button type="button" className={aiRan ? "ghost" : "primary"} disabled={running || !M} onClick={() => { openResults(); runAI(true); }}>{aiRan ? "Run it again" : "Run Ellie's first pass"}</button>
                   </div>
-                  <p className="status">{aiStatus}</p>
-                  <div id="ai" dangerouslySetInnerHTML={{ __html: md(aiText) }} />
+                  {staleRef.current && aiRan && <p className="status">{aiStatus}</p>}
                 </>
               )}
               </div>
@@ -471,6 +542,9 @@ export default function DealScreen() {
 
           <div className="foot-logo"><img src="/logo-ink.webp" alt="Fifth Dimension" height="20" /></div>
         </section>
+      </main>
+      </>
+      )}
 
         <dialog id="solo" ref={soloRef} aria-labelledby="solo-title">
           <div className="solo-in">
@@ -495,7 +569,6 @@ export default function DealScreen() {
             </div>
           </div>
         </dialog>
-      </main>
     </>
   );
 }
