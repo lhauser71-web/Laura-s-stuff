@@ -85,7 +85,7 @@ function layout(ctx, b, k, dry) {
   newPage();
   // Start a new page when the next section won't fit above the footer.
   const fit = (h) => { if (y - h < FOOT + 6 && y < H - 60) newPage(); };
-  if (!dry) { doc.setTitle(safe(`IC first pass: ${b.dealName}`)); doc.setAuthor("Fifth Dimension Deal Screen"); }
+  if (!dry) { doc.setTitle(safe(`Fifth Dimension: ${b.dealName} Screen`)); doc.setAuthor("Fifth Dimension Deal Screen"); }
   const P = (fn) => { if (!dry) fn(page); };
   const text = (s, x, y, size, font, color, opts = {}) => P((p) => p.drawText(safe(s), { x, y, size, font, color, ...opts }));
   const rect = (x, top, w, h, color, extra = {}) => P((p) => p.drawRectangle({ x, y: top - h, width: w, height: h, color, ...extra }));
