@@ -612,7 +612,7 @@ export default function DealScreen() {
               <div className="locked-body" {...(M ? {} : { inert: "", "aria-hidden": "true" })}>
               <div className="ellie-id" style={{ marginBottom: 14 }}>
                 <img className="ellie" src="/ellie.webp" alt="Ellie Jr." width="52" height="52" />
-                <div><h2 style={{ margin: 0 }}>Screen the Deal with Ellie Jr.</h2><small>Get the verdict, red flags, broker questions and data room list</small></div>
+                <div><h2 style={{ margin: 0 }}>Get the verdict, red flags, broker questions and data room list</h2><small>Screen the deal with Ellie Jr.</small></div>
               </div>
 
               {!leadDone && (

@@ -360,3 +360,5 @@ button.primary[disabled]{opacity:.45}
 .intro-who{font-size:17px;line-height:1.5;color:var(--ink)}
 .intro-what{margin-top:6px !important;font-size:17px;line-height:1.5;color:#4d4a4a}
 @media (max-width:640px){.intro-row{grid-template-columns:minmax(0,1fr)}.intro-row > .step-n.spacer{display:none}.intro-who{font-size:15px}.intro-what{font-size:15px}}
+/* Step 3 heading is longer now: keep it tidy on phones */
+@media (max-width:640px){.ellie-id{align-items:flex-start}.ellie-id h2{font-size:22px !important;line-height:1.05}.ellie-id img{width:44px;height:44px;flex:none}}
