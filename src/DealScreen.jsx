@@ -129,6 +129,29 @@ export default function DealScreen() {
     setScreen("deal");
     try { window.history.replaceState(null, "", "/" + window.location.search); } catch {}
   }
+  // "Screen another deal": back to step 1 with nothing selected (the visitor's name and email are kept).
+  function screenAnother() {
+    if (ctrlRef.current) { try { ctrlRef.current.abort(); } catch {} }
+    freshRef.current = true;
+    staleRef.current = false;
+    setExample("blank");
+    setVals({ ...EXAMPLES.blank });
+    setTags({});
+    setInputsOpen(false);
+    setTz("");
+    setTzStatus("");
+    setRead(null);
+    setTzBusy(false);
+    if (fileRef.current) fileRef.current.value = "";
+    setFileName("");
+    clearAI();
+    setRunning(false);
+    setCopied(false);
+    setMailStatus("");
+    setScreen("deal");
+    try { window.history.replaceState(null, "", "/" + window.location.search); } catch {}
+    window.scrollTo(0, 0);
+  }
   // Solo pop-up: once per visit, 20 seconds after the user lands on the results (cancelled if they leave first).
   useEffect(() => {
     if (screen !== "results" || soloShownRef.current) return;
@@ -136,7 +159,9 @@ export default function DealScreen() {
     return () => clearTimeout(t);
   }, [screen]);
 
+  const freshRef = useRef(false);
   useEffect(() => {
+    if (freshRef.current) { freshRef.current = false; return; }
     if (screen === "deal" && leadDone) setTimeout(() => aiRef.current && aiRef.current.scrollIntoView({ block: "start" }), 0);
   }, [screen]);
 
@@ -435,7 +460,7 @@ export default function DealScreen() {
             <div className="rp-bar-top">
               <button type="button" className="rp-back" onClick={backToDeal}>← Back to the deal</button>
               <div className="rp-actions">
-              <button type="button" className="ghost" disabled={running || !M} onClick={() => runAI(true)}>Run it again</button>
+              <button type="button" className="ghost" onClick={screenAnother}>Screen another deal</button>
               <button type="button" className="ghost" disabled={!aiRan || running} onClick={copyBrief}>{copied ? "Copied ✓" : "Copy IC brief"}</button>
               <a className="btn-primary" href={SOLO_URL} target="_blank" rel="noopener">Go deeper in Solo</a>
               </div>
