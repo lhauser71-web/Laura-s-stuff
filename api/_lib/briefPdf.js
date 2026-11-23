@@ -1,6 +1,6 @@
 // IC first-pass PDF (one or two A4 pages), styled like the results screen (src/Report.jsx + the .rp-* styles):
-// grey paper, page banner, 5D-black deal band with orange-topped KPI tiles, RAG verdict card,
-// black "three numbers" band with segmented bars, red-flag blockers, orange question cards,
+// grey paper, page banner, deal title band, RAG verdict card, black "three numbers" band with
+// segmented bars, red-flag blockers, "the deal in numbers" KPI tiles, orange question cards,
 // data room checklist and the orange "what would change my mind" callout.
 // Brand fonts (League Gothic, IBM Plex Mono; SIL OFL, see assets/OFL-fonts.txt) are embedded.
 // Body text is ~9.5 pt; sections never split across pages; a footer with page numbers on each page.
@@ -110,24 +110,13 @@ function layout(ctx, b, k, dry) {
   {
     const pad = 16 * k, iw = CW - 2 * pad;
     const nameS = 30 * k, nameLines = wrap(String(b.dealName).toUpperCase(), lg, nameS, iw);
-    const kH = 36 * k;
-    const h = pad + nameLines.length * nameS * 0.98 + 4 * k + lh(7.5 * k) + 12 * k + kH + pad;
+    const h = pad + nameLines.length * nameS * 0.98 + 4 * k + lh(7.5 * k) + pad - 4 * k;
     fit(h);
     rect(M, y, CW, h, C.black);
     let yy = y - pad;
     for (const l of nameLines) { yy -= nameS * 0.98; text(l, M + pad, yy + nameS * 0.18, nameS, lg, C.white); }
     yy -= 4 * k + 7.5 * k;
     text([b.date, b.meta].filter(Boolean).join("  ·  "), M + pad, yy, 7.5 * k, mono, C.light);
-    yy -= 12 * k;
-    const n = b.kpis.length, tw = iw / n;
-    rect(M + pad, yy, iw, kH, C.tileLine);
-    b.kpis.forEach(([kk, v], i) => {
-      const x = M + pad + i * tw;
-      rect(x + 0.5, yy - 0.5, tw - 1, kH - 1, C.tile);
-      rect(x + 0.5, yy - 0.5, tw - 1, 2.5 * k, C.orange);
-      text(String(kk).toUpperCase(), x + 8 * k, yy - 13 * k, 5.8 * k, mono, C.light, { characterSpacing: 0.5 * k });
-      text(v, x + 8 * k, yy - 30 * k, 19 * k, lg, C.white);
-    });
     y -= h + GAP;
   }
 
@@ -240,6 +229,28 @@ function layout(ctx, b, k, dry) {
       }
       yy -= r.hh + 5 * k;
     }
+    y -= h + GAP;
+  }
+
+  // ---- the deal in numbers: the other KPI tiles (black band) ----
+  if (b.kpis.length) {
+    const pad = 18 * k, titleS = 20 * k, iw = CW - 2 * pad, kH = 40 * k;
+    const h = pad + titleS * 0.9 + 12 * k + kH + pad;
+    fit(h);
+    rect(M, y, CW, h, C.black);
+    const tA = "THE DEAL ", tB = "IN NUMBERS";
+    text(tA, M + pad, y - pad - titleS * 0.75, titleS, lg, C.white);
+    text(tB, M + pad + lg.widthOfTextAtSize(tA, titleS), y - pad - titleS * 0.75, titleS, lg, C.dim);
+    const yy = y - pad - titleS * 0.9 - 12 * k;
+    const n = b.kpis.length, tw = iw / n;
+    rect(M + pad, yy, iw, kH, C.tileLine);
+    b.kpis.forEach(([kk, v], i) => {
+      const x = M + pad + i * tw;
+      rect(x + 0.5, yy - 0.5, tw - 1, kH - 1, C.tile);
+      rect(x + 0.5, yy - 0.5, tw - 1, 2.5 * k, C.orange);
+      text(String(kk).toUpperCase(), x + 8 * k, yy - 14 * k, 6.2 * k, mono, C.light, { characterSpacing: 0.5 * k });
+      text(v, x + 8 * k, yy - 33 * k, 21 * k, lg, C.white);
+    });
     y -= h + GAP;
   }
 
