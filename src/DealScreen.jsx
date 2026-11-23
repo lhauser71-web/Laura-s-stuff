@@ -390,12 +390,12 @@ export default function DealScreen() {
     setLBusy(false);
   }
 
-  // Email the follow-up (with the one-page PDF) from the server; figures are recalculated there.
+  // Email the follow-up (with the PDF) from the server; figures are recalculated there.
   async function emailCopy(name, email, text) {
     setMailStatus("Emailing a copy to " + email + "…");
     try {
       const r = await fetch("/api/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email, vals, example, text, company: lTrap }) });
-      if (r.ok) { setMailStatus("A copy of this analysis, with a one-page PDF, is on its way to " + email + "."); return; }
+      if (r.ok) { setMailStatus("A copy of this analysis, with a PDF, is on its way to " + email + "."); return; }
       const j = await r.json().catch(() => ({}));
       setMailStatus(j.code === "rate_limited" ? "We've sent a few copies already, so this one wasn't emailed. Try again later." : "We couldn't email a copy just now, but your analysis is below.");
     } catch {
@@ -634,7 +634,7 @@ export default function DealScreen() {
                 <tr><th>Works from</th><td>The headline numbers</td><td>The real numbers based on the complex documentation</td></tr>
                 <tr><th>Checks</th><td>Simple math based on your inputs</td><td>The formulas across every deal aspect (the OM against the T-12, the rent roll against the OM)</td></tr>
                 <tr><th>Confidential files</th><td>N/A</td><td>Uploaded securely, and never used to train large language models</td></tr>
-                <tr><th>What you get</th><td>A one-page first pass</td><td>A cited IC memo draft your team can check and sign off</td></tr>
+                <tr><th>What you get</th><td>A short first pass</td><td>A cited IC memo draft your team can check and sign off</td></tr>
               </tbody>
             </table>
             <div className="row solo-cta">

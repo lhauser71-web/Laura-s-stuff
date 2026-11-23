@@ -1,9 +1,9 @@
-// One-page IC first-pass PDF, styled like the results screen (src/Report.jsx + the .rp-* styles):
+// IC first-pass PDF (one or two A4 pages), styled like the results screen (src/Report.jsx + the .rp-* styles):
 // grey paper, page banner, 5D-black deal band with orange-topped KPI tiles, RAG verdict card,
 // black "three numbers" band with segmented bars, red-flag blockers, orange question cards,
 // data room checklist and the orange "what would change my mind" callout.
 // Brand fonts (League Gothic, IBM Plex Mono; SIL OFL, see assets/OFL-fonts.txt) are embedded.
-// Everything scales down together until it fits on a single A4 page.
+// Body text is ~9.5 pt; sections never split across pages; a footer with page numbers on each page.
 
 import fs from "node:fs";
 import { PDFDocument, rgb, LineCapStyle } from "pdf-lib";
@@ -49,10 +49,11 @@ const splitUnit = (v) => { const m = String(v).match(/^(.*?\d)\s?(bps|bn|m|M|k)$
 
 export async function buildBriefPdf(b) {
   const files = { lg: asset("LeagueGothic.ttf"), mono: asset("IBMPlexMono-Regular.ttf"), monoB: asset("IBMPlexMono-SemiBold.ttf"), mark: asset("mark5d.png"), logo: asset("logo-ink.png") };
-  // Measure at decreasing scales, then draw once at the largest scale that fits one page.
+  // Measure, then draw once at the largest scale that fits two pages.
   const probe = await setup(files);
   let k = 1;
-  for (const s of [1, 0.95, 0.9, 0.86, 0.82, 0.78, 0.74, 0.7, 0.66, 0.62]) { k = s; if (layout(probe, b, s, true)) break; }
+  // Readable sizes first (body ~9.5 pt); only shrink if a very long note would run past two pages.
+  for (const s of [1.3, 1.25, 1.2, 1.15, 1.1, 1.05, 1, 0.96, 0.92, 0.88]) { k = s; if (layout(probe, b, s, true) <= 2) break; }
   const ctx = await setup(files);
   layout(ctx, b, k, false);
   return ctx.doc.save();
@@ -71,11 +72,19 @@ async function setup(f) {
   };
 }
 
-// Returns true if everything fits above the footer. With dry=true nothing is drawn.
+// Returns the number of pages used. With dry=true nothing is drawn. Sections never split across pages.
 function layout(ctx, b, k, dry) {
   const { doc, lg, mono, monoB } = ctx;
   const W = 595.28, H = 841.89, M = 26, CW = W - 2 * M, FOOT = 34;
-  const page = dry ? null : doc.addPage([W, H]);
+  let page = null, pages = 0, y = H;
+  const newPage = () => {
+    pages += 1;
+    if (!dry) { page = doc.addPage([W, H]); page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: C.paper }); }
+    y = pages === 1 ? H : H - 30;
+  };
+  newPage();
+  // Start a new page when the next section won't fit above the footer.
+  const fit = (h) => { if (y - h < FOOT + 6 && y < H - 60) newPage(); };
   if (!dry) { doc.setTitle(safe(`IC first pass: ${b.dealName}`)); doc.setAuthor("Fifth Dimension Deal Screen"); }
   const P = (fn) => { if (!dry) fn(page); };
   const text = (s, x, y, size, font, color, opts = {}) => P((p) => p.drawText(safe(s), { x, y, size, font, color, ...opts }));
@@ -85,32 +94,30 @@ function layout(ctx, b, k, dry) {
   const lh = (s, f = 1.42) => s * f;
   const GAP = 9 * k;
 
-  P((p) => p.drawRectangle({ x: 0, y: 0, width: W, height: H, color: C.paper }));
-  let y = H;
 
   // ---- page banner (same as the site header) ----
-  const markH = 24 * k, markW = (ctx.mark.width / ctx.mark.height) * markH;
-  P((p) => p.drawImage(ctx.mark, { x: M, y: H - 9 * k - markH, width: markW, height: markH }));
-  const t1 = "DEAL SCREEN: A SENIOR ANALYST ", t2 = "ON EVERY DEAL", ts = 17 * k;
-  text(t1, M + markW + 12 * k, H - 9 * k - markH / 2 - ts * 0.33, ts, lg, C.muted);
-  text(t2, M + markW + 12 * k + lg.widthOfTextAtSize(t1, ts), H - 9 * k - markH / 2 - ts * 0.33, ts, lg, hex("#a39b95"));
-  y = H - 18 * k - markH;
+  const kb = Math.min(k, 1);
+  const markH = 36 * kb, markW = (ctx.mark.width / ctx.mark.height) * markH;
+  P((p) => p.drawImage(ctx.mark, { x: M, y: H - 12 * kb - markH, width: markW, height: markH }));
+  const t1 = "DEAL SCREEN: A SENIOR ANALYST ", t2 = "ON EVERY DEAL", ts = 27 * kb;
+  text(t1, M + markW + 14 * kb, H - 12 * kb - markH / 2 - ts * 0.33, ts, lg, C.muted);
+  text(t2, M + markW + 14 * kb + lg.widthOfTextAtSize(t1, ts), H - 12 * kb - markH / 2 - ts * 0.33, ts, lg, hex("#a39b95"));
+  y = H - 24 * kb - markH;
   P((p) => p.drawLine({ start: { x: 0, y }, end: { x: W, y }, thickness: 0.6, color: C.rule }));
-  y -= 12 * k;
+  y -= 12 * kb;
 
   // ---- deal band ----
   {
     const pad = 16 * k, iw = CW - 2 * pad;
     const nameS = 30 * k, nameLines = wrap(String(b.dealName).toUpperCase(), lg, nameS, iw);
     const kH = 36 * k;
-    const h = pad + lh(6.5 * k) + 3 * k + nameLines.length * nameS * 0.98 + 4 * k + lh(7.5 * k) + 12 * k + kH + pad;
+    const h = pad + nameLines.length * nameS * 0.98 + 4 * k + lh(7.5 * k) + 12 * k + kH + pad;
+    fit(h);
     rect(M, y, CW, h, C.black);
-    let yy = y - pad - 6.5 * k;
-    text(`DEAL SCREEN ANALYSIS  ·  ${String(b.date).toUpperCase()}`, M + pad, yy, 6.5 * k, mono, hex("#a39b95"), { characterSpacing: 0.8 * k });
-    yy -= 3 * k;
+    let yy = y - pad;
     for (const l of nameLines) { yy -= nameS * 0.98; text(l, M + pad, yy + nameS * 0.18, nameS, lg, C.white); }
     yy -= 4 * k + 7.5 * k;
-    if (b.meta) text(b.meta, M + pad, yy, 7.5 * k, mono, C.light);
+    text([b.date, b.meta].filter(Boolean).join("  ·  "), M + pad, yy, 7.5 * k, mono, C.light);
     yy -= 12 * k;
     const n = b.kpis.length, tw = iw / n;
     rect(M + pad, yy, iw, kH, C.tileLine);
@@ -131,6 +138,7 @@ function layout(ctx, b, k, dry) {
     const whyLines = wrap(b.verdictReason, mono, whyS, CW - 2 * pad - 8 * k);
     const rowH = Math.max(d, labS * 0.9);
     const h = pad + rowH + 10 * k + whyLines.length * lh(whyS, 1.5) + pad - 4 * k;
+    fit(h);
     rect(M, y, CW, h, mix(C.white, rc, 0.07), { borderColor: mix(C.rule, rc, 0.35), borderWidth: 0.6 });
     rect(M, y, 7 * k, h, rc);
     const cx = M + 7 * k + pad + d / 2, cy = y - pad - rowH / 2;
@@ -138,9 +146,11 @@ function layout(ctx, b, k, dry) {
     icon(rag === "green" ? "check" : rag === "red" ? "x" : "bang", cx, cy, d * 0.55, C.white, 3);
     const tx = M + 7 * k + pad + d + 12 * k;
     // One line: "ELLIE JR.'S VERDICT: PASS", the verdict in its RAG colour.
-    const lead = "ELLIE JR.'S VERDICT: ", base = cy - labS * 0.3;
-    text(lead, tx, base, labS, lg, C.ink);
-    text(String(b.verdict).toUpperCase(), tx + lg.widthOfTextAtSize(lead, labS), base, labS, lg, rc);
+    const lead = "ELLIE JR.'S VERDICT: ", vtxt = String(b.verdict).toUpperCase();
+    const room = M + CW - pad - tx, need = lg.widthOfTextAtSize(lead + vtxt, labS);
+    const vS = need > room ? labS * (room / need) : labS, base = cy - vS * 0.3;
+    text(lead, tx, base, vS, lg, C.ink);
+    text(vtxt, tx + lg.widthOfTextAtSize(lead, vS), base, vS, lg, rc);
     let yy = y - pad - rowH - 10 * k;
     for (const l of whyLines) { yy -= whyS * 1.15; text(l, M + 7 * k + pad, yy, whyS, mono, C.ink); yy -= whyS * 0.35; }
     y -= h + GAP;
@@ -158,6 +168,7 @@ function layout(ctx, b, k, dry) {
       return { num, lab, body, off: i * stag, hh };
     });
     const h = pad + titleS * 0.9 + 14 * k + Math.max(...cols.map((c) => c.off + c.hh)) + pad;
+    fit(h);
     rect(M, y, CW, h, C.black);
     const tA = "THE THREE NUMBERS ", tB = "THAT MATTER";
     text(tA, M + pad, y - pad - titleS * 0.75, titleS, lg, C.white);
@@ -188,6 +199,7 @@ function layout(ctx, b, k, dry) {
 
   // card shell + heading for the white sections
   const card = (h, title, small) => {
+    fit(h);
     rect(M, y, CW, h, C.panel, { borderColor: C.rule, borderWidth: 0.6 });
     const ts2 = 19 * k;
     text(title, M + 16 * k, y - 14 * k - ts2 * 0.75, ts2, lg, C.ink);
@@ -286,6 +298,7 @@ function layout(ctx, b, k, dry) {
     const pad = 14 * k, d = 26 * k, tx = pad + d + 12 * k, mS = 8.4 * k;
     const lines = wrap(b.mind, mono, mS, CW - tx - pad);
     const h = pad + 18 * k * 0.9 + 6 * k + lines.length * lh(mS, 1.5) + pad - 2 * k;
+    fit(h);
     rect(M, y, CW, h, C.orangeTint, { borderColor: C.orange, borderWidth: 0.8 });
     const cx = M + pad + d / 2, cy = y - pad - d / 2;
     P((p) => p.drawCircle({ x: cx, y: cy, size: d / 2, color: C.orange }));
@@ -296,11 +309,14 @@ function layout(ctx, b, k, dry) {
     y -= h + GAP;
   }
 
-  // ---- footer ----
-  const logoH = 11, logoW = (ctx.logo.width / ctx.logo.height) * logoH;
-  P((p) => p.drawImage(ctx.logo, { x: W - M - logoW, y: 14, width: logoW, height: logoH }));
-  text("Prepared with Fifth Dimension Deal Screen.", M, 22, 5.8, mono, C.muted);
-  text("A first pass for your team to check, not advice.", M, 14, 5.8, mono, C.muted);
-
-  return y >= FOOT;
+  // ---- footer on every page ----
+  if (!dry) {
+    const logoH = 12, logoW = (ctx.logo.width / ctx.logo.height) * logoH;
+    doc.getPages().forEach((pg, i, all) => {
+      pg.drawImage(ctx.logo, { x: W - M - logoW, y: 13, width: logoW, height: logoH });
+      pg.drawText("Prepared with Fifth Dimension Deal Screen. A first pass for your team to check, not advice.", { x: M, y: 18, size: 7, font: mono, color: C.muted });
+      if (all.length > 1) { const t = `Page ${i + 1} of ${all.length}`; pg.drawText(t, { x: W - M - logoW - 16 - mono.widthOfTextAtSize(t, 7), y: 18, size: 7, font: mono, color: C.muted }); }
+    });
+  }
+  return pages;
 }

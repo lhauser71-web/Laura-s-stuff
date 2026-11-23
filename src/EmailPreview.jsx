@@ -60,7 +60,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
         Preview with sample values (Austin example). Subject: <strong>Fifth Dimension Deal Screen: The Mercer</strong> · Attachment: IC-first-pass.pdf
       </div>
       <div style={{ display: "none", maxHeight: 0, overflow: "hidden", opacity: 0 }}>
-        Your one-page IC first pass is attached. Verdict: {e.verdict}.
+        Your IC first pass is attached. Verdict: {e.verdict}.
       </div>
 
       <table {...tbl} style={{ background: "#e2e2e2" }}><tbody><tr><td align="center" style={{ padding: "24px 12px" }}>

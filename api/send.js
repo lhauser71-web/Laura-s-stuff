@@ -1,4 +1,4 @@
-// Vercel Node function: emails the follow-up (with the one-page PDF) from Laura's Gmail.
+// Vercel Node function: emails the follow-up (with the PDF) from Laura's Gmail.
 // Needs GMAIL_USER and GMAIL_APP_PASSWORD (a Google app password) in the project's environment variables.
 //
 // Abuse guards, since this is a public form sending from a personal inbox:
