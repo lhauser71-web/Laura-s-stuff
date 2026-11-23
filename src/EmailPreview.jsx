@@ -120,7 +120,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
               </td>
             </tr></tbody></table>
             <table {...tbl}><tbody><tr><td align="center" style={{ paddingTop: 22 }}>
-              <a href={SOLO_URL} style={{ display: "inline-block", padding: "16px 34px", borderRadius: 999, backgroundColor: "#f86a1c", backgroundImage: "linear-gradient(90deg,#e8441a 0%,#f86a1c 45%,#fb8125 70%,#ffa00a 100%)", color: "#201d1d", textDecoration: "none", fontSize: 13, letterSpacing: ".14em", textTransform: "uppercase" }}>Start Solo free for 3 months</a>
+              <a href={SOLO_URL} style={{ display: "inline-block", padding: "16px 34px", borderRadius: 4, backgroundColor: "#e15e29", border: "2px solid #e15e29", color: "#ffffff", textDecoration: "none", fontSize: 13, letterSpacing: ".12em", textTransform: "uppercase" }}>Start Solo free for 3 months</a>
             </td></tr></tbody></table>
           </td></tr>
 
@@ -135,7 +135,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
               </td>
             </tr></tbody></table>
             <table {...tbl}><tbody><tr><td align="center" style={{ paddingTop: 20 }}>
-              <a href={e.bookCallUrl} style={{ display: "inline-block", padding: "15px 32px", border: "1px solid #f35202", borderRadius: 999, color: "#201d1d", textDecoration: "none", fontSize: 13, letterSpacing: ".14em", textTransform: "uppercase" }}>Book a call with an expert</a>
+              <a href={e.bookCallUrl} style={{ display: "inline-block", padding: "15px 32px", border: "2px solid #221f20", borderRadius: 4, color: "#221f20", textDecoration: "none", fontSize: 13, letterSpacing: ".12em", textTransform: "uppercase" }}>Book a call with an expert</a>
             </td></tr></tbody></table>
           </td></tr>
 

@@ -203,3 +203,9 @@ button.ghost:hover,.upload-row button.ghost:hover{background:#221f20;color:#fff;
 button.primary[disabled]{opacity:.45}
 .upload-row{gap:10px}
 .verdict-why{margin:8px 0 0;font-size:14px;max-width:80ch}
+
+/* Brand step numbers: large, faded orange numerals beside each step */
+.step-row{grid-template-columns:96px minmax(0,1fr);gap:12px}
+.step-row > .step-n{width:auto;height:auto;border-radius:0;background:none;display:block;margin-top:4px;padding:0;font-family:var(--display);font-weight:400;font-size:84px;line-height:.9;letter-spacing:-.01em;color:#e15e29;opacity:.45;text-align:left}
+.step-row:has(.card.locked) > .step-n{filter:none;color:#b9b3ae;opacity:.35}
+@media (max-width:640px){.step-row{grid-template-columns:44px minmax(0,1fr);gap:8px}.step-row > .step-n{width:auto;height:auto;font-size:38px;margin-top:10px}}

@@ -119,9 +119,10 @@ export default function DealScreen() {
 
   // Manual entry starts from a blank deal, unless Ellie has already filled it from a listing.
   function openManual() {
-    if (inputsOpen) { setInputsOpen(false); return; }
+    // Always opens (never closes) the deal-info form, starting blank unless Ellie filled it from a listing.
     if (example !== "blank") { loadExample("blank"); setTzStatus(""); }
     setInputsOpen(true);
+    setTimeout(() => { const el = document.getElementById("deal-inputs"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
   }
 
   function setField(id, value) {
@@ -331,7 +332,7 @@ export default function DealScreen() {
           <div className="steps">
             {/* STEP 1: enter the deal */}
             <div className="step-row">
-            <div className="step-n" aria-hidden="true">1</div>
+            <div className="step-n" aria-hidden="true">01</div>
             <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
               <h2>Enter your deal</h2>
               <p className="lede">Simply paste a broker listing, upload a screenshot or enter the deal information below. No listing to hand? Use sample data.</p>
@@ -386,7 +387,7 @@ export default function DealScreen() {
 
             {/* STEP 2: the numbers (locked until there's a deal) */}
             <div className="step-row">
-            <div className="step-n" aria-hidden="true">2</div>
+            <div className="step-n" aria-hidden="true">02</div>
             <div className={"card step" + (M ? "" : " locked")} ref={numbersRef}>
               <div className="locked-body" {...(M ? {} : { inert: "", "aria-hidden": "true" })}>
                 <h2>See the numbers{D.name ? <small>{D.name}</small> : null}</h2>
@@ -428,7 +429,7 @@ export default function DealScreen() {
 
             {/* STEP 3: Ellie's first pass (locked until there's a deal) */}
             <div className="step-row">
-            <div className="step-n" aria-hidden="true">3</div>
+            <div className="step-n" aria-hidden="true">03</div>
             <div className={"card step ellie-card" + (M ? "" : " locked")} ref={aiRef}>
               <div className="locked-body" {...(M ? {} : { inert: "", "aria-hidden": "true" })}>
               <div className="ellie-id" style={{ marginBottom: 14 }}>
