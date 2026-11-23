@@ -325,3 +325,5 @@ button.primary[disabled]{opacity:.45}
 .rp-bar-top .rp-actions{margin:0}
 .rp-deal + .rp-status{margin-top:10px}
 @media (max-width:560px){.rp-bar-top .rp-actions{width:100%}.rp-bar-top .rp-actions > *{flex:1 1 auto;text-align:center}}
+.rp-kpi,.rp-kpi.good,.rp-kpi.warn,.rp-kpi.bad{border-top-color:#e15e29}
+.rp-why{max-width:none}

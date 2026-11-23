@@ -110,7 +110,6 @@ function BigValue({ v }) {
   return m ? <>{m[1]}<small className="rp-unit">{m[2]}</small></> : <>{v}</>;
 }
 
-const RAG_NOTE = { green: "Worth pursuing", amber: "Pursue only if the conditions are met", red: "Walk away at these terms" };
 
 // ---------- report ----------
 export default function Report({ text, running, score }) {
@@ -136,7 +135,6 @@ export default function Report({ text, running, score }) {
             <div>
               <div className="rp-kicker">Ellie Jr.'s verdict</div>
               <div className="rp-rag-label">{r.verdict.label}</div>
-              <div className="rp-rag-note">{RAG_NOTE[r.verdict.rag]}</div>
             </div>
           </div>
           {r.verdict.why && <H as="p" className="rp-why" s={r.verdict.why} />}
