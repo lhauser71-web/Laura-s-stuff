@@ -16,16 +16,14 @@ export const SAMPLE_EMAIL = {
   dealName: "The Mercer · 312-unit garden multifamily",
   market: "Austin, TX",
   verdict: "Pass",
-  verdictReason: "At $78.0M the value-add only reaches a 9.7% levered IRR if 6.5% NOI growth lands on schedule, into a submarket with 2,900 new units arriving.",
+  verdictReason: "Negative leverage and 2,900 new units leave too little margin at $78.0M.",
   kpis: [
     ["Going-in cap", "5.10%"],
     ["DSCR", "1.14x"],
     ["Debt yield", "8.5%"],
     ["Levered IRR", "9.7%"],
   ],
-  redFlagTitle: "New supply",
-  redFlagBody: "2,900 units delivering within 3 miles in 18 months compete directly with renovated units at a $185 premium. Check lease-up schedules and asking rents for each new scheme.",
-  bookCallUrl: "#",
+  bookCallUrl: "https://www.fifthdimensionai.com/contact",
 };
 
 // Same red / amber / green as the results page: Pass = walk away (red), Pursue with conditions = amber, Pursue = green.
@@ -73,7 +71,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
             <table {...tbl}><tbody><tr>
               <td width="64" valign="middle"><img src="/mark5d.webp" width="58" height="48" alt="5D" style={{ display: "block", border: 0 }} /></td>
               <td valign="middle" style={{ paddingLeft: 14, fontFamily: DISPLAY, fontSize: 26, lineHeight: 1, letterSpacing: ".03em", textTransform: "uppercase", color: "#ffffff" }}>
-                Deal Screen: <span style={{ color: "#f35202" }}>Ellie Jr.'s first pass</span>
+                Deal Screen: <span style={{ color: "#f35202" }}>{e.dealName.split(" · ")[0]}</span>
               </td>
             </tr></tbody></table>
           </td></tr>
@@ -81,7 +79,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
           {/* Intro */}
           <tr><td className="px" style={{ padding: "30px 32px 8px", fontSize: 14, lineHeight: 1.6 }}>
             <p style={{ margin: "0 0 14px" }}>Hi {e.firstName},</p>
-            <p style={{ margin: "0 0 14px" }}>Ellie Jr.'s first pass on <strong>{e.dealName}</strong> ({e.market}) is attached as a one-page PDF. Here's the short version.</p>
+            <p style={{ margin: "0 0 14px" }}>Attached, please find Ellie Jr.'s analysis of <strong>{e.dealName.split(" · ")[0]}</strong>.</p>
           </td></tr>
 
           {/* Snapshot */}
@@ -102,10 +100,6 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
                   ))}
                 </tr></tbody></table>
               </td></tr>
-              <tr><td style={{ borderTop: "1px solid #e2e2e2", padding: "14px 18px", fontSize: 13, lineHeight: 1.5 }}>
-                <span style={eyebrow}>Top red flag</span><br />
-                <strong>{e.redFlagTitle}</strong>: {e.redFlagBody}
-              </td></tr>
             </tbody></table>
           </td></tr>
 
@@ -119,7 +113,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
               <td width="84" valign="top"><img src="/ellie.webp" width="72" height="72" alt="Ellie" style={{ display: "block", border: 0, borderRadius: "50%" }} /></td>
               <td valign="top" style={{ paddingLeft: 6 }}>
                 <div style={{ fontFamily: DISPLAY, fontSize: 28, lineHeight: 1.05, textTransform: "uppercase", color: "#201d1d" }}>Want Ellie to analyze actual documents?</div>
-                <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.6 }}>Ellie reads the whole package (the OM, the rent roll, the T-12, the loan docs), cross checks the documents and provides an accurate, in depth analysis. Uploaded files are protected and never used to train large language models.</p>
+                <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.6 }}>Upload the whole package (the OM, the rent roll, the T-12, the loan docs), for a more accurate, in depth analysis. Uploaded files are protected and never used to train large language models.</p>
               </td>
             </tr></tbody></table>
             <table {...tbl}><tbody><tr><td align="center" style={{ paddingTop: 22 }}>
@@ -148,12 +142,11 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
           </td></tr>
 
           {/* Footer */}
-          <tr><td className="px" style={{ background: "#201d1d", padding: "18px 32px", fontSize: 11, lineHeight: 1.6, color: "#bdb7b3" }}>
+          <tr><td className="px" style={{ background: "#201d1d", padding: "16px 32px", fontSize: 9, lineHeight: 1.5, color: "#a39b95" }}>
             <table {...tbl}><tbody><tr>
-              <td valign="middle" style={{ color: "#bdb7b3" }}>
+              <td valign="middle" style={{ color: "#a39b95", fontSize: 9 }}>
                 You're getting this because you ran a deal through 5D Deal Screen.<br />
-                Fifth Dimension · [Street address], [City]<br />
-                <a href="#" style={{ color: "#bdb7b3" }}>Unsubscribe</a> · <a href="#" style={{ color: "#bdb7b3" }}>Manage preferences</a>
+                <a href="#" style={{ color: "#a39b95" }}>Unsubscribe</a>
               </td>
               <td align="right" valign="middle" width="150"><img src="/logo-white.webp" width="140" alt="Fifth Dimension" style={{ display: "block", border: 0, width: 140, height: "auto" }} /></td>
             </tr></tbody></table>

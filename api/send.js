@@ -86,11 +86,10 @@ export default async function handler(req, res) {
   const { html, text } = buildEmail({
     subject, baseUrl,
     firstName: name.split(/\s+/)[0],
-    dealName, market,
-    verdict: r.verdict.label, verdictReason: r.verdict.why,
+    dealName, dealShort: shortName, market,
+    // The email uses Ellie Jr.'s short headline; the full sentence stays on the results page and PDF.
+    verdict: r.verdict.label, verdictReason: r.headline || r.verdict.why,
     kpis,
-    redFlagTitle: flags[0]?.title || "", redFlagBody: [flags[0]?.body, flags[0]?.check && "Check: " + flags[0].check].filter(Boolean).join(" "),
-    bookCallUrl: `mailto:${user}?subject=${encodeURIComponent("Book a call: 5D Deal Screen")}`,
     unsubscribeUrl: `mailto:${user}?subject=${encodeURIComponent("Unsubscribe: 5D Deal Screen")}`,
   });
 

@@ -21,6 +21,8 @@ export function parseReport(text) {
       const t = l.replace(/^#+\s*/, "");
       const v = t.match(/^VERDICT:\s*(.*)$/i);
       if (v) { out.verdict = parseVerdict(v[1]); cur = null; continue; }
+      const hl = t.match(/^HEADLINE:\s*(.*)$/i);
+      if (hl) { out.headline = sentence(hl[1]); cur = null; continue; }
       const k = sectionKey(t);
       if (!out.sections[k]) { out.sections[k] = { title: t, items: [], text: [] }; out.order.push(k); }
       cur = out.sections[k];

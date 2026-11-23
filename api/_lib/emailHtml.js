@@ -4,6 +4,7 @@
 const DISPLAY = "'League Gothic','Arial Narrow',Impact,sans-serif";
 const MONO = "'IBM Plex Mono',Menlo,Consolas,'Courier New',monospace";
 const SOLO_URL = "https://access.5dai.io/ui/sign-in?redirect=%2Fui";
+export const CONTACT_URL = "https://www.fifthdimensionai.com/contact";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const ragColour = (v) => (/^pass\b/i.test(v) ? "#d93a2f" : /condition/i.test(v) ? "#d98a00" : "#1f9d63");
@@ -36,13 +37,13 @@ export function buildEmail(e) {
 <tr><td class="px" style="background:#201d1d;padding:20px 32px">
   <table ${TBL}><tr>
     <td width="64" valign="middle"><img src="${img("mark5d")}" width="58" height="48" alt="5D" style="display:block;border:0"></td>
-    <td valign="middle" style="padding-left:14px;font-family:${DISPLAY};font-size:26px;line-height:1;letter-spacing:.03em;text-transform:uppercase;color:#ffffff">Deal Screen: <span style="color:#f35202">Ellie Jr.'s first pass</span></td>
+    <td valign="middle" style="padding-left:14px;font-family:${DISPLAY};font-size:26px;line-height:1;letter-spacing:.03em;text-transform:uppercase;color:#ffffff">Deal Screen: <span style="color:#f35202">${esc(e.dealShort)}</span></td>
   </tr></table>
 </td></tr>
 
 <tr><td class="px" style="padding:30px 32px 8px;font-size:14px;line-height:1.6">
   <p style="margin:0 0 14px">Hi ${esc(e.firstName)},</p>
-  <p style="margin:0 0 14px">Ellie Jr.'s first pass on <strong>${esc(e.dealName)}</strong>${e.market ? ` (${esc(e.market)})` : ""} is attached as a one-page PDF. Here's the short version.</p>
+  <p style="margin:0 0 14px">Attached, please find Ellie Jr.'s analysis of <strong>${esc(e.dealShort)}</strong>.</p>
 </td></tr>
 
 <tr><td class="px" style="padding:6px 32px 0">
@@ -53,9 +54,6 @@ export function buildEmail(e) {
       <div style="font-size:13px;line-height:1.5;color:#201d1d">${esc(e.verdictReason)}</div>
     </td></tr>
     <tr><td style="border-top:1px solid #e2e2e2"><table ${TBL}><tr>${kpis}</tr></table></td></tr>
-    ${e.redFlagTitle ? `<tr><td style="border-top:1px solid #e2e2e2;padding:14px 18px;font-size:13px;line-height:1.5">
-      <span style="${EYEBROW}">Top red flag</span><br><strong>${esc(e.redFlagTitle)}</strong>${e.redFlagBody ? ": " + esc(e.redFlagBody) : ""}
-    </td></tr>` : ""}
   </table>
 </td></tr>
 
@@ -68,7 +66,7 @@ export function buildEmail(e) {
     <td width="84" valign="top"><img src="${img("ellie")}" width="72" height="72" alt="Ellie" style="display:block;border:0;border-radius:50%"></td>
     <td valign="top" style="padding-left:6px">
       <div style="font-family:${DISPLAY};font-size:28px;line-height:1.05;text-transform:uppercase;color:#201d1d">Want Ellie to analyze actual documents?</div>
-      <p style="margin:8px 0 0;font-size:13px;line-height:1.6">Ellie reads the whole package (the OM, the rent roll, the T-12, the loan docs), cross checks the documents and provides an accurate, in depth analysis. Uploaded files are protected and never used to train large language models.</p>
+      <p style="margin:8px 0 0;font-size:13px;line-height:1.6">Upload the whole package (the OM, the rent roll, the T-12, the loan docs), for a more accurate, in depth analysis. Uploaded files are protected and never used to train large language models.</p>
     </td>
   </tr></table>
   <table ${TBL}><tr><td align="center" style="padding-top:22px">
@@ -86,16 +84,16 @@ export function buildEmail(e) {
     </td>
   </tr></table>
   <table ${TBL}><tr><td align="center" style="padding-top:20px">
-    <a href="${esc(e.bookCallUrl)}" style="display:inline-block;padding:15px 32px;border:2px solid #221f20;border-radius:4px;color:#221f20;text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase">Book a call with an expert</a>
+    <a href="${CONTACT_URL}" style="display:inline-block;padding:15px 32px;border:2px solid #221f20;border-radius:4px;color:#221f20;text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase">Book a call with an expert</a>
   </td></tr></table>
 </td></tr>
 
 <tr><td class="px" style="padding:26px 32px 30px;font-size:13px;line-height:1.6"><p style="margin:0">The Fifth Dimension team</p></td></tr>
 
-<tr><td class="px" style="background:#201d1d;padding:18px 32px;font-size:11px;line-height:1.6;color:#bdb7b3">
+<tr><td class="px" style="background:#201d1d;padding:16px 32px;font-size:9px;line-height:1.5;color:#a39b95">
   <table ${TBL}><tr>
-    <td valign="middle" style="color:#bdb7b3">You're getting this because you ran a deal through 5D Deal Screen.<br>
-      <a href="${esc(e.unsubscribeUrl)}" style="color:#bdb7b3">Unsubscribe</a></td>
+    <td valign="middle" style="color:#a39b95;font-size:9px">You're getting this because you ran a deal through 5D Deal Screen.<br>
+      <a href="${esc(e.unsubscribeUrl)}" style="color:#a39b95">Unsubscribe</a></td>
     <td align="right" valign="middle" width="150"><img src="${img("logo-white")}" width="140" alt="Fifth Dimension" style="display:block;border:0;width:140px;height:auto"></td>
   </tr></table>
 </td></tr>
@@ -107,13 +105,14 @@ export function buildEmail(e) {
   const text = [
     `Hi ${e.firstName},`,
     "",
-    `Ellie Jr.'s first pass on ${e.dealName}${e.market ? ` (${e.market})` : ""} is attached as a one-page PDF.`,
+    `Attached, please find Ellie Jr.'s analysis of ${e.dealShort}.`,
     "",
     `Verdict: ${e.verdict}. ${e.verdictReason}`,
     e.kpis.map(([k, v]) => `${k} ${v}`).join(" · "),
-    e.redFlagTitle ? `Top red flag: ${e.redFlagTitle}${e.redFlagBody ? ". " + e.redFlagBody : ""}` : "",
     "",
+    "Upload the whole package (the OM, the rent roll, the T-12, the loan docs), for a more accurate, in depth analysis. Uploaded files are protected and never used to train large language models.",
     `Start Solo free for 3 months: ${SOLO_URL}`,
+    `Book a call with an expert: ${CONTACT_URL}`,
     "",
     "The Fifth Dimension team",
   ].filter((l) => l !== null).join("\n");

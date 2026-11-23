@@ -4,6 +4,7 @@
 
 export const SAMPLE_BRIEFS = {
   aus: `### VERDICT: Pass — At $78.0M the value-add only reaches a 9.7% levered IRR if 6.5% NOI growth lands on schedule, into a submarket with 2,900 new units arriving.
+### HEADLINE: Negative leverage and 2,900 new units leave too little margin at $78.0M.
 
 ### The three numbers that matter
 - **-236 bps leverage spread.** The 5.10% going-in cap sits well below the 7.47% loan constant, so every dollar of debt dilutes returns until the renovation premium is earned.
@@ -35,6 +36,7 @@ export const SAMPLE_BRIEFS = {
 Evidence that renovated units are already leasing at $185+ net of concessions, and a price that brings the going-in cap closer to the loan constant.`,
 
   sgp: `### VERDICT: Pursue with conditions — Debt cover is strong, but a 6.1% levered IRR on a single-tenant leasehold with a year-3 break needs the renewal secured before it is worth the time.
+### HEADLINE: Cheap, well-covered debt, but the year-3 break must be settled first.
 
 ### The three numbers that matter
 - **6.1% levered IRR, 1.29x multiple.** Modest for the risk of one tenant on a shortening lease; at -0.5% NOI growth it falls to 2.8%.
@@ -65,6 +67,7 @@ Evidence that renovated units are already leasing at $185+ net of concessions, a
 A signed break waiver or lease extension past the hold period would make this a pursue; a confirmed break would make it a pass.`,
 
   nyc: `### VERDICT: Pass — The recap returns a -13.1% levered IRR and 0.53x equity multiple at $210.0M, with refinancing and lease-up risk arriving at the same time.
+### HEADLINE: A -13.1% IRR and a loan due in nine months: walk away.
 
 ### The three numbers that matter
 - **-13.1% levered IRR, 0.53x multiple.** Equity loses close to half its value at the base case; even at 3% NOI growth the IRR is -7.7%.
@@ -96,6 +99,7 @@ A signed break waiver or lease extension past the hold period would make this a 
 A price reset that brings the going-in yield close to the exit cap, plus signed renewals on the 22% expiring.`,
 
   ldn: `### VERDICT: Pursue with conditions — The financing works and cover is strong, but a 7.8% levered IRR depends on keeping the largest tenant past its 2028 break and funding the EPC upgrade.
+### HEADLINE: Strong cover, but the 2028 break and EPC upgrade must be resolved first.
 
 ### The three numbers that matter
 - **7.8% levered IRR, 1.40x multiple.** Acceptable for core-plus only if income is secured; at 1% NOI growth it falls to 4.2%.
