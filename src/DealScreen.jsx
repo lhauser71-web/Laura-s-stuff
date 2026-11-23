@@ -148,12 +148,13 @@ export default function DealScreen() {
   );
 
   // ---------- teaser ----------
-  async function fillFromTeaser() {
-    const t = tz.trim();
-    const file = fileRef.current && fileRef.current.files[0];
-    if (!t && !file) { setTzStatus("Paste a teaser or listing, or upload a document or brochure."); return; }
+  // Runs automatically when a listing is pasted or a file is chosen (no button).
+  async function fillFromTeaser({ text = "", file = null } = {}) {
+    if (tzBusy) return;
+    const t = file ? "" : text.trim();
+    if (!t && !file) return;
     let image = null;
-    if (file && !t) {
+    if (file) {
       try { image = await fileToImage(file); }
       catch (e) { setTzStatus(e && e.code === "too_big" ? "That file is too large. Try one under 4.5 MB, or paste the text." : "Couldn't open that file. Paste the text instead."); return; }
     }
@@ -305,17 +306,17 @@ export default function DealScreen() {
             <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
               <h2>Enter your deal</h2>
               <p className="lede">Simply paste a broker listing, upload a screenshot or enter the deal information below. No listing to hand? Use sample data.</p>
-              <textarea id="tz" placeholder="Paste the listing or teaser text here" value={tz} onChange={(e) => setTz(e.target.value)} />
+              <textarea id="tz" placeholder="Paste the listing or teaser text here" value={tz} disabled={tzBusy} onChange={(e) => setTz(e.target.value)}
+                onPaste={(e) => { const p = e.clipboardData.getData("text"); if (!p.trim()) return; const el = e.currentTarget; const next = el.value.slice(0, el.selectionStart) + p + el.value.slice(el.selectionEnd); fillFromTeaser({ text: next }); }} />
               <div className="row upload-row">
                 <span className="or">or</span>
                 <label className="upload">Upload document/brochure
                   <input type="file" ref={fileRef} accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
-                    onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) setTzStatus("Ready to read " + f.name + "."); }} />
+                    onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) fillFromTeaser({ file: f }); fileRef.current.value = ""; }} />
                 </label>
                 {fileName && <span className="file-name">{fileName}</span>}
               </div>
               <div className="row" style={{ marginTop: 14 }}>
-                <button type="button" className="primary" disabled={tzBusy} onClick={fillFromTeaser}>Fill in the fields</button>
                 <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
               </div>
               {tzStatus && <p className="status">{tzStatus}</p>}
