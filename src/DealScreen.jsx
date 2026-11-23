@@ -509,7 +509,7 @@ export default function DealScreen() {
             <div className="step-row">
             <div className="step-n" aria-hidden="true">01</div>
             <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
-              <h2>Enter your deal</h2>
+              <h2>Enter your deal information</h2>
               <p className="lede">Simply paste a broker listing, upload a screenshot or enter the deal information below. No listing to hand? Use sample data.</p>
               <textarea id="tz" placeholder="Paste the listing or teaser text here" value={tz} disabled={tzBusy} onChange={(e) => setTz(e.target.value)}
                 onPaste={(e) => { const p = e.clipboardData.getData("text"); if (!p.trim()) return; const el = e.currentTarget; const next = el.value.slice(0, el.selectionStart) + p + el.value.slice(el.selectionEnd); fillFromTeaser({ text: next }); }} />
