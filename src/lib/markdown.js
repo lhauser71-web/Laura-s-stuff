@@ -17,7 +17,9 @@ export function md(t) {
       if (m) {
         const v = m[1];
         const cls = /^pass\b/i.test(v) ? "bad" : /condition/i.test(v) ? "warn" : "good";
-        out += '<h3>Verdict</h3><div class="verdict"><span class="chip ' + cls + '">' + esc(v.split(/[—–-]/)[0].trim()) + "</span></div>";
+        const parts = v.split(/\s+[—–-]\s+/);
+        const why = parts.slice(1).join(" — ").trim();
+        out += '<h3>Verdict</h3><div class="verdict"><span class="chip ' + cls + '">' + esc(parts[0].trim()) + "</span>" + (why ? '<p class="verdict-why">' + inline(why) + "</p>" : "") + "</div>";
         continue;
       }
       out += "<h3>" + inline(txt) + "</h3>";

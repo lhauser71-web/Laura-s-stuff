@@ -202,3 +202,4 @@ button.ghost:hover,.upload-row button.ghost:hover{background:#221f20;color:#fff;
 .upload-row button.ghost.manual-btn.on{background:#221f20;color:#fff;box-shadow:none}
 button.primary[disabled]{opacity:.45}
 .upload-row{gap:10px}
+.verdict-why{margin:8px 0 0;font-size:14px;max-width:80ch}

@@ -3,6 +3,7 @@ import { EXAMPLES, EXAMPLE_OPTIONS, FIELDS, NUMERIC, ASSETS, CCYS, UNITS, SOLO_U
 import { calc, model, money, pct, bps, sym, perUnit, facts } from "./lib/finance.js";
 import { md } from "./lib/markdown.js";
 import { askEllie, fileToImage } from "./lib/ellie.js";
+import { SAMPLE_BRIEFS } from "./sampleBriefs.js";
 
 const AI_IDLE = "Ellie reads the numbers above plus your notes, then writes what a good senior analyst would put in front of IC.";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -236,6 +237,27 @@ export default function DealScreen() {
     setAiText("");
     setAiStatus("Ellie is reading the deal…");
     const t0 = performance.now();
+    // Sample deals, run unedited, use Ellie's prepared first pass (no live AI call needed).
+    const sample = example !== "blank" && SAMPLE_BRIEFS[example] && EXAMPLES[example] && FIELDS.every((f) => String(vals[f] ?? "") === String(EXAMPLES[example][f] ?? ""));
+    if (sample) {
+      const full = SAMPLE_BRIEFS[example];
+      try {
+        for (let i = 0; i < full.length; i += 60) {
+          if (ctrl.signal.aborted) return null;
+          setAiText(full.slice(0, i));
+          await new Promise((r) => setTimeout(r, 18));
+        }
+        setAiText(full);
+        setAiRan(true);
+        staleRef.current = false;
+        setSoloBtn(true);
+        if (!soloShownRef.current) { soloShownRef.current = true; setTimeout(openSolo, 1500); }
+        setAiStatus("Ellie's first pass on this sample deal. Paste your own listing for a live one.");
+        return full;
+      } finally {
+        setRunning(false);
+      }
+    }
     try {
       const res = await askEllie({ task: "firstpass", facts: facts(D, M) }, { signal: ctrl.signal, onText: ({ text }) => setAiText(text) });
       setAiText(res.text);
