@@ -561,7 +561,8 @@ export default function DealScreen() {
             </form>
             </div>
 
-            {/* STEP 2: the numbers (locked until there's a deal) */}
+            {/* STEP 2: the numbers (shown once there's enough to calculate) */}
+            {M && (
             <div className="step-row">
             <div className="step-n" aria-hidden="true">02</div>
             <div className={"card step" + (M ? "" : " locked")} ref={numbersRef}>
@@ -601,6 +602,7 @@ export default function DealScreen() {
               {!M && <div className="lock-badge"><LockIcon />{D.name || isFinite(D.price) ? "Still missing: " + missingCore(D) + "." : "Add a deal in step 1 to unlock"}</div>}
             </div>
             </div>
+            )}
 
 
             {/* STEP 3: Ellie's first pass (locked until there's a deal) */}
@@ -640,7 +642,7 @@ export default function DealScreen() {
                 </>
               )}
               </div>
-              {!M && <div className="lock-badge"><LockIcon />Unlocks with the numbers</div>}
+              {!M && <div className="lock-badge"><LockIcon />Add a deal above to unlock</div>}
             </div>
             </div>
 
