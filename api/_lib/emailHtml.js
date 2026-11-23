@@ -74,7 +74,7 @@ export function buildEmail(e) {
   </td></tr></table>
 </td></tr>
 
-<tr><td class="px" style="padding:30px 32px 6px">
+<tr><td class="px" style="padding:30px 32px 34px">
   <table ${TBL}><tr>
     <td width="84" valign="top"><img src="${img("johnny")}" width="72" height="72" alt="Johnny Morris" style="display:block;border:0;border-radius:50%"></td>
     <td valign="top" style="padding-left:6px">
@@ -87,8 +87,6 @@ export function buildEmail(e) {
     <a href="${CONTACT_URL}" style="display:inline-block;padding:15px 32px;border:2px solid #221f20;border-radius:4px;color:#221f20;text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase">Book a call with an expert</a>
   </td></tr></table>
 </td></tr>
-
-<tr><td class="px" style="padding:26px 32px 30px;font-size:13px;line-height:1.6"><p style="margin:0">The Fifth Dimension team</p></td></tr>
 
 <tr><td class="px" style="background:#201d1d;padding:16px 32px;font-size:9px;line-height:1.5;color:#a39b95">
   <table ${TBL}><tr>
@@ -113,8 +111,6 @@ export function buildEmail(e) {
     "Upload the whole package (the OM, the rent roll, the T-12, the loan docs) for a more accurate, in-depth analysis. Uploaded files are protected and never used to train large language models.",
     `Start Solo free for 3 months: ${SOLO_URL}`,
     `Book a call with an expert: ${CONTACT_URL}`,
-    "",
-    "The Fifth Dimension team",
   ].filter((l) => l !== null).join("\n");
 
   return { html, text };

@@ -122,7 +122,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
           </td></tr>
 
           {/* Talk to an expert */}
-          <tr><td className="px" style={{ padding: "30px 32px 6px" }}>
+          <tr><td className="px" style={{ padding: "30px 32px 34px" }}>
             <table {...tbl}><tbody><tr>
               <td width="84" valign="top"><img src="/johnny.webp" width="72" height="72" alt="Johnny Morris" style={{ display: "block", border: 0, borderRadius: "50%" }} /></td>
               <td valign="top" style={{ paddingLeft: 6 }}>
@@ -134,11 +134,6 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
             <table {...tbl}><tbody><tr><td align="center" style={{ paddingTop: 20 }}>
               <a href={e.bookCallUrl} style={{ display: "inline-block", padding: "15px 32px", border: "2px solid #221f20", borderRadius: 4, color: "#221f20", textDecoration: "none", fontSize: 13, letterSpacing: ".12em", textTransform: "uppercase" }}>Book a call with an expert</a>
             </td></tr></tbody></table>
-          </td></tr>
-
-          {/* Sign-off */}
-          <tr><td className="px" style={{ padding: "26px 32px 30px", fontSize: 13, lineHeight: 1.6 }}>
-            <p style={{ margin: 0 }}>The Fifth Dimension team</p>
           </td></tr>
 
           {/* Footer */}
