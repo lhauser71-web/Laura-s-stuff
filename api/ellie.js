@@ -59,10 +59,35 @@ ${text ? "DOCUMENT:\n" + text : "The document is in the attached file."}`;
 const json = (status, obj) =>
   new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json" } });
 
+// Spend guards (per server instance, so a soft cap): same-site requests only,
+// AI_PER_VISITOR calls per visitor per 10 minutes (default 12, enough for a few deals) and AI_DAILY_CAP calls a day (default 300).
+const PER_VISITOR = Number(process.env.AI_PER_VISITOR || 12);
+const DAILY_CAP = Number(process.env.AI_DAILY_CAP || 300);
+const WINDOW_MS = 10 * 60 * 1000;
+const hits = new Map();
+let day = { key: "", count: 0 };
+function overLimit(ip) {
+  const now = Date.now();
+  const list = (hits.get(ip) || []).filter((t) => now - t < WINDOW_MS);
+  if (list.length >= PER_VISITOR) return true;
+  const today = new Date().toISOString().slice(0, 10);
+  if (day.key !== today) day = { key: today, count: 0 };
+  if (day.count >= DAILY_CAP) return true;
+  list.push(now); hits.set(ip, list); day.count += 1;
+  if (hits.size > 5000) hits.clear();
+  return false;
+}
+
 export default async function handler(req) {
   if (req.method !== "POST") return json(405, { code: "method_not_allowed" });
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return json(503, { code: "not_configured" });
+
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+  const origin = req.headers.get("origin") || req.headers.get("referer") || "";
+  try { if (!origin || new URL(origin).host !== host) return json(403, { code: "forbidden" }); } catch { return json(403, { code: "forbidden" }); }
+  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+  if (overLimit(ip)) return json(429, { code: "rate_limited" });
 
   let body;
   try { body = await req.json(); } catch { return json(400, { code: "bad_request" }); }
