@@ -617,7 +617,6 @@ export default function DealScreen() {
 
               {!leadDone && (
                 <form className="capture-in" noValidate onSubmit={submitLead}>
-                  <h3 className="sub" style={{ marginTop: 0 }}>Enter your info to access your deal screen analysis</h3>
                   <div className="fields two">
                     <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
                     <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
