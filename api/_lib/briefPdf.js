@@ -299,7 +299,7 @@ function layout(ctx, b, k, dry) {
   // ---- footer ----
   const logoH = 11, logoW = (ctx.logo.width / ctx.logo.height) * logoH;
   P((p) => p.drawImage(ctx.logo, { x: W - M - logoW, y: 14, width: logoW, height: logoH }));
-  text("Prepared with Fifth Dimension Deal Screen. Every number is calculated from the inputs given.", M, 22, 5.8, mono, C.muted);
+  text("Prepared with Fifth Dimension Deal Screen.", M, 22, 5.8, mono, C.muted);
   text("A first pass for your team to check, not advice.", M, 14, 5.8, mono, C.muted);
 
   return y >= FOOT;

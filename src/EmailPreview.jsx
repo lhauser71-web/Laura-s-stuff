@@ -104,7 +104,8 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
           </td></tr>
 
           <tr><td className="px" style={{ padding: "16px 32px 4px", fontSize: 13, lineHeight: 1.6, color: "#201d1d" }}>
-            <p style={{ margin: "0 0 24px" }}>The PDF also has the broker questions and the data-room list. Every number is calculated from the inputs you gave, so you can trace each one. It's a first pass for your team to check, not advice.</p>
+            <p style={{ margin: "0 0 6px" }}>The PDF also has the broker questions and the data-room list. It's a first pass for your team to check, not advice.</p>
+            <p style={{ margin: "0 0 24px", fontSize: 9, lineHeight: 1.5, color: "#8a827d" }}>Every number is calculated from the inputs you gave, so you can trace each one.</p>
           </td></tr>
 
           {/* Solo offer */}
