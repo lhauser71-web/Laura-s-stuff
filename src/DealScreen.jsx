@@ -282,7 +282,7 @@ export default function DealScreen() {
     ["Exit vs entry cap", bps(M.exitSpread), "exit " + D.exitcap.toFixed(2) + "%", M.exitSpread >= 0.0025 ? "good" : M.exitSpread >= 0 ? "warn" : "bad"],
     ["Levered IRR", isFinite(M.irr) ? pct(M.irr, 1) : "n/m", D.hold + "-yr hold, " + M.em.toFixed(2) + "x equity", M.irr >= 0.15 ? "good" : M.irr >= 0.1 ? "warn" : "bad"],
     ["Equity cheque", money(M.equity, D.ccy), "incl. capex " + money(D.capex || 0, D.ccy), ""],
-  ] : [];
+  ] : ["Going-in cap", "Price / unit", "DSCR", "Debt yield", "Leverage spread", "Breakeven occupancy", "Exit vs entry cap", "Levered IRR", "Equity cheque"].map((k) => [k, "—", "", "empty"]);
 
   const caps = M ? [-0.25, 0, 0.25, 0.5, 0.75].map((x) => D.exitcap + x) : [];
   const gs = M ? [D.growth - 2, D.growth, D.growth + 2] : [];
@@ -348,14 +348,15 @@ export default function DealScreen() {
               </details>
 
               <div className="numbers-inline" ref={numbersRef}>
+                <h2 className="numbers-h">The numbers{D.name ? <small>{D.name}</small> : null}</h2>
+                {!M && (D.name || isFinite(D.price)) ? <p className="status" style={{ marginTop: 0 }}>{"Still missing: " + missingCore(D) + "."}</p> : null}
+                <div className="metrics">
+                  {tiles.map(([k, v, n, cls]) => (
+                    <div className={"metric " + cls} key={k}><span className="k">{k}</span><span className="v">{v}</span><span className="n">{n}</span></div>
+                  ))}
+                </div>
                 {M ? (
                   <>
-                    <h2 className="numbers-h">The numbers{D.name ? <small>{D.name}</small> : null}</h2>
-                      <div className="metrics">
-                        {tiles.map(([k, v, n, cls]) => (
-                          <div className={"metric " + cls} key={k}><span className="k">{k}</span><span className="v">{v}</span><span className="n">{n}</span></div>
-                        ))}
-                      </div>
                       <h3 className="sub">Levered IRR sensitivity <small>exit cap × NOI growth</small></h3>
                       <div className="scroll">
                         <table className="sens">
@@ -379,10 +380,7 @@ export default function DealScreen() {
 
                   </>
                 ) : (
-                  <div className="row next-row">
-                    <button type="button" className="primary" disabled>Unlock the numbers with a deal</button>
-                    {D.name || isFinite(D.price) ? <span className="status">{"Still missing: " + missingCore(D) + "."}</span> : null}
-                  </div>
+                  <p className="hint">Paste a listing, upload a brochure, use sample data or enter the deal above, and the numbers fill in here.</p>
                 )}
               </div>
             </form>

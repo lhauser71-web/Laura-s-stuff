@@ -180,3 +180,4 @@ header.top .mark-top{height:40px;opacity:.6}
 .numbers-inline{margin-top:18px;border-top:1px solid var(--rule);padding-top:14px;scroll-margin-top:12px}
 .numbers-inline h2.numbers-h{margin-top:0}
 .numbers-inline .next-row{margin-top:0;padding-top:0;border-top:0}
+.metric.empty .v{color:#cfcac6}
