@@ -17,6 +17,10 @@
 .teaser h3{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:20px;letter-spacing:.02em;margin:0 0 4px}
 .teaser .hint{margin:0 0 8px}
 label.file input{font-size:11px;padding:4px 0;border:0;background:none}
+label.file input::file-selector-button{font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);padding:8px 18px;margin-right:10px;cursor:pointer;border:1px solid transparent;border-radius:999px;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#e8441a,#ffa00a) border-box}
+label.file input::file-selector-button:hover{background:linear-gradient(#faf9f8,#faf9f8) padding-box,linear-gradient(90deg,#e8441a,#ffa00a) border-box}
+label.file{flex:1 1 auto}
+label.file input{font-family:var(--body);color:var(--ink);text-transform:none;letter-spacing:0}
 .src{font-size:10px;letter-spacing:.02em;text-transform:none;color:var(--good);line-height:1.3}
 .src.miss{color:var(--bad)} .src.you{color:var(--muted)}
 .ellie{flex:none;display:block;width:52px;height:52px;border-radius:50%;object-fit:cover}
