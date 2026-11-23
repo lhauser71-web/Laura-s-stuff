@@ -109,10 +109,10 @@ table.cmp thead th:last-child{color:var(--accent)}
 table.cmp td:last-child{background:#fff4ee}
 table.cmp tbody th{font-weight:500;color:var(--muted);width:22%}
 footer{font-size:11.5px;color:var(--muted);max-width:110ch;margin-top:20px}
-button.primary,a.btn-primary{background:linear-gradient(90deg,#e8441a 0%,#f86a1c 45%,#fb8125 70%,#ffa00a 100%);border:0;border-radius:999px;color:var(--ink);font-weight:400;letter-spacing:.14em;text-transform:uppercase;padding:12px 26px;transition:filter .15s}
+button.primary,a.btn-primary{background:var(--accent);border:0;border-radius:0;color:var(--ink);font-weight:400;letter-spacing:.14em;text-transform:uppercase;padding:12px 26px;transition:filter .15s}
 button.primary:hover,a.btn-primary:hover{filter:brightness(1.06)}
-button.ghost{border:1px solid transparent;border-radius:999px;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#e8441a,#ffa00a) border-box;color:var(--ink);letter-spacing:.14em;padding:12px 26px}
-button.ghost:hover{background:linear-gradient(#faf9f8,#faf9f8) padding-box,linear-gradient(90deg,#e8441a,#ffa00a) border-box}
+button.ghost{border:1px solid var(--accent);border-radius:0;background:#fff;color:var(--ink);letter-spacing:.14em;padding:12px 26px}
+button.ghost:hover{background:#fdf0ea}
 button.ghost[disabled]{opacity:.45;cursor:default}
 .solo-cta a.btn-primary,.solo-cta button.ghost{font-size:14px;padding:16px 34px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -161,13 +161,13 @@ button.linkish{text-transform:none;letter-spacing:0;font-size:13px;text-decorati
 /* Branded upload button: hides the browser's own "Choose file / No file chosen" control */
 .upload-row{margin-top:12px}
 .upload-row .or{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-label.upload{position:relative;display:inline-flex;align-items:center;font-family:var(--body);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);padding:10px 22px;border:1px solid var(--ink);border-radius:999px;cursor:pointer;background:#fff}
+label.upload{position:relative;display:inline-flex;align-items:center;font-family:var(--body);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);padding:10px 22px;border:1px solid var(--ink);border-radius:0;cursor:pointer;background:#fff}
 label.upload:hover{background:#faf9f8}
 label.upload:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 label.upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;padding:0;border:0}
 /* Step 1 CTAs: both orange, bold */
-.upload-row label.upload,.upload-row button.ghost{background:linear-gradient(90deg,#e8441a 0%,#f86a1c 45%,#fb8125 70%,#ffa00a 100%);border:0;color:var(--ink);font-weight:700;font-size:12px;letter-spacing:.14em;padding:12px 26px;line-height:1.2}
-.upload-row label.upload:hover,.upload-row button.ghost:hover{background:linear-gradient(90deg,#e8441a 0%,#f86a1c 45%,#fb8125 70%,#ffa00a 100%);filter:brightness(1.06)}
+.upload-row label.upload,.upload-row button.ghost{background:var(--accent);border-radius:0;border:0;color:var(--ink);font-weight:700;font-size:12px;letter-spacing:.14em;padding:12px 26px;line-height:1.2}
+.upload-row label.upload:hover,.upload-row button.ghost:hover{background:var(--accent);filter:brightness(1.06)}
 .file-name{font-size:12px;color:var(--ink);max-width:32ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Quieter banner: low contrast so the deal form gets the attention */
