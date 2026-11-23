@@ -484,7 +484,7 @@ export default function DealScreen() {
             <table className="cmp">
               <thead><tr><th></th><th>Deal Screen</th><th>Solo</th></tr></thead>
               <tbody>
-                <tr><th>Works from</th><td>The headline numbers</td><td>The documents themselves</td></tr>
+                <tr><th>Works from</th><td>The headline numbers</td><td>The real numbers based on the complex documentation</td></tr>
                 <tr><th>Checks</th><td>The math on your inputs</td><td>The formulas across every deal aspect (the OM against the T-12, the rent roll against the OM)</td></tr>
                 <tr><th>Confidential files</th><td>N/A</td><td>Uploaded securely, and never used to train large language models</td></tr>
                 <tr><th>What you get</th><td>A one-page first pass</td><td>A cited IC memo draft your team can check and sign off</td></tr>
