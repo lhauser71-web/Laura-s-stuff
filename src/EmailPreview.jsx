@@ -15,18 +15,21 @@ export const SAMPLE_EMAIL = {
   firstName: "Jo",
   dealName: "The Mercer · 312-unit garden multifamily",
   market: "Austin, TX",
-  verdict: "Pursue with conditions",
-  verdictReason: "The value-add plan can work, but 2,900 new units within three miles put the renovation premium at risk.",
+  verdict: "Pass",
+  verdictReason: "At $78.0M the value-add only reaches a 9.7% levered IRR if 6.5% NOI growth lands on schedule, into a submarket with 2,900 new units arriving.",
   kpis: [
     ["Going-in cap", "5.10%"],
     ["DSCR", "1.14x"],
     ["Debt yield", "8.5%"],
     ["Levered IRR", "9.7%"],
   ],
-  redFlagTitle: "DSCR of 1.14x at 60% LTV",
-  redFlagBody: "thin cover if concessions persist. Check lender minimums and size the loan to 1.25x.",
+  redFlagTitle: "New supply",
+  redFlagBody: "2,900 units delivering within 3 miles in 18 months compete directly with renovated units at a $185 premium. Check lease-up schedules and asking rents for each new scheme.",
   bookCallUrl: "#",
 };
+
+// Same red / amber / green as the results page: Pass = walk away (red), Pursue with conditions = amber, Pursue = green.
+const ragColour = (v) => (/^pass\b/i.test(v) ? "#d93a2f" : /condition/i.test(v) ? "#d98a00" : "#1f9d63");
 
 const DISPLAY = "'League Gothic','Arial Narrow',Impact,sans-serif";
 const MONO = "'IBM Plex Mono',Menlo,Consolas,'Courier New',monospace";
@@ -86,7 +89,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
             <table {...tbl} style={{ border: "1px solid #e2e2e2" }}><tbody>
               <tr><td style={{ padding: "16px 18px 12px" }}>
                 <div style={eyebrow}>Verdict</div>
-                <div className="h1" style={{ fontFamily: DISPLAY, fontSize: 40, lineHeight: 1.05, textTransform: "uppercase", color: "#201d1d", margin: "4px 0 6px" }}>{e.verdict}</div>
+                <div className="h1" style={{ fontFamily: DISPLAY, fontSize: 40, lineHeight: 1.05, textTransform: "uppercase", color: ragColour(e.verdict), margin: "4px 0 6px" }}>{e.verdict}</div>
                 <div style={{ fontSize: 13, lineHeight: 1.5, color: "#201d1d" }}>{e.verdictReason}</div>
               </td></tr>
               <tr><td style={{ borderTop: "1px solid #e2e2e2" }}>
