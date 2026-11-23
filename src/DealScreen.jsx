@@ -6,7 +6,7 @@ import { askEllie, fileToImage } from "./lib/ellie.js";
 import { SAMPLE_BRIEFS } from "./sampleBriefs.js";
 import Report from "./Report.jsx";
 
-const AI_IDLE = "Ellie reads the numbers above plus your notes, then writes what a good senior analyst would put in front of IC.";
+const AI_IDLE = "Ellie Jr. reads the numbers above plus your notes, then writes what a good senior analyst would put in front of IC.";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 function LockIcon() {
@@ -38,7 +38,7 @@ function errorMessage(e, fallback) {
   const code = e && e.code;
   if (code === "not_configured") return "The AI isn't switched on for this site yet (no API key set). The numbers still work.";
   if (code === "rate_limited") return "Too many runs in a row. Wait a minute and try again.";
-  if (code === "network") return "Couldn't reach Ellie. Check your connection and try again.";
+  if (code === "network") return "Couldn't reach Ellie Jr. Check your connection and try again.";
   return fallback;
 }
 
@@ -180,14 +180,14 @@ export default function DealScreen() {
       catch (e) { setTzStatus(e && e.code === "too_big" ? "That file is too large. Try one under 4.5 MB, or paste the text." : "Couldn't open that file. Paste the text instead."); return; }
     }
     setTzBusy(true);
-    setTzStatus("Ellie is reading the document…");
+    setTzStatus("Ellie Jr. is reading the document…");
     try {
       const res = await askEllie({ task: "extract", text: t, image });
       const m = (res.text || "").match(/\{[\s\S]*\}/);
       if (!m) throw { code: "parse" };
       applyTeaser(JSON.parse(m[0]));
     } catch (e) {
-      setTzStatus(errorMessage(e, "Ellie couldn't read that one. Try pasting the text, or type the numbers in."));
+      setTzStatus(errorMessage(e, "Ellie Jr. couldn't read that one. Try pasting the text, or type the numbers in."));
     } finally {
       setTzBusy(false);
     }
@@ -227,7 +227,7 @@ export default function DealScreen() {
     setExample("blank");
     clearAI();
     setInputsOpen(true);
-    setTzStatus("Ellie filled " + found + " fields from the document. Add what's missing below to see the numbers.");
+    setTzStatus("Ellie Jr. filled " + found + " fields from the document. Add what's missing below to see the numbers.");
     autoNumbersRef.current = true;
   }
 
@@ -256,7 +256,7 @@ export default function DealScreen() {
     ctrlRef.current = ctrl;
     setRunning(true);
     setAiText("");
-    setAiStatus("Ellie is reading the deal…");
+    setAiStatus("Ellie Jr. is reading the deal…");
     const t0 = performance.now();
     // Sample deals, run unedited, use Ellie's prepared first pass (no live AI call needed).
     const sample = example !== "blank" && SAMPLE_BRIEFS[example] && EXAMPLES[example] && FIELDS.every((f) => String(vals[f] ?? "") === String(EXAMPLES[example][f] ?? ""));
@@ -508,8 +508,8 @@ export default function DealScreen() {
             <div className={"card step ellie-card" + (M ? "" : " locked")} ref={aiRef}>
               <div className="locked-body" {...(M ? {} : { inert: "", "aria-hidden": "true" })}>
               <div className="ellie-id" style={{ marginBottom: 14 }}>
-                <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
-                <div><h2 style={{ margin: 0 }}>Screen the Deal with Ellie</h2><small>Get the verdict, red flags, broker questions and data room list</small></div>
+                <img className="ellie" src="/ellie.webp" alt="Ellie Jr." width="52" height="52" />
+                <div><h2 style={{ margin: 0 }}>Screen the Deal with Ellie Jr.</h2><small>Get the verdict, red flags, broker questions and data room list</small></div>
               </div>
 
               {!leadDone && (
@@ -520,7 +520,7 @@ export default function DealScreen() {
                     <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
                   </div>
                   <div className="row" style={{ marginTop: 14 }}>
-                    <button type="submit" className="primary" disabled={lBusy || !M}>Get Ellie's first pass</button>
+                    <button type="submit" className="primary" disabled={lBusy || !M}>Get Ellie Jr.'s first pass</button>
                     {lStatus && <span className="status">{lStatus}</span>}
                   </div>
                   <p className="hint" style={{ margin: "10px 0 0" }}>We'll send you a copy of the brief. Unsubscribe at any time.</p>
@@ -529,10 +529,10 @@ export default function DealScreen() {
 
               {leadDone && (
                 <>
-                  <p style={{ margin: "0 0 12px" }}>{running ? "Ellie is writing your deal screen analysis…" : aiRan ? "Your deal screen analysis is ready." : "Run Ellie on this deal to get your analysis."}</p>
+                  <p style={{ margin: "0 0 12px" }}>{running ? "Ellie Jr. is writing your deal screen analysis…" : aiRan ? "Your deal screen analysis is ready." : "Run Ellie Jr. on this deal to get your analysis."}</p>
                   <div className="row">
                     {aiRan && <button type="button" className="primary" onClick={openResults}>Open your analysis →</button>}
-                    <button type="button" className={aiRan ? "ghost" : "primary"} disabled={running || !M} onClick={() => { openResults(); runAI(true); }}>{aiRan ? "Run it again" : "Run Ellie's first pass"}</button>
+                    <button type="button" className={aiRan ? "ghost" : "primary"} disabled={running || !M} onClick={() => { openResults(); runAI(true); }}>{aiRan ? "Run it again" : "Run Ellie Jr.'s first pass"}</button>
                   </div>
                   {staleRef.current && aiRan && <p className="status">{aiStatus}</p>}
                 </>

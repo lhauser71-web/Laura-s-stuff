@@ -46,7 +46,7 @@ const responsiveCss = `
 export default function EmailPreview({ data = SAMPLE_EMAIL }) {
   const e = data;
   useEffect(() => {
-    document.title = `Ellie's first pass on ${e.dealName}`;
+    document.title = `Ellie Jr.'s first pass on ${e.dealName}`;
     const prev = document.body.style.background;
     document.body.style.background = "#e2e2e2";
     return () => { document.body.style.background = prev; };
@@ -56,7 +56,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
     <div className="email-root" style={{ margin: 0, padding: 0, background: "#e2e2e2" }}>
       <style>{responsiveCss}</style>
       <div style={{ background: "#201d1d", color: "#fff", fontFamily: "Menlo,monospace", fontSize: 12, padding: "10px 16px", textAlign: "center" }}>
-        Preview with sample values (Austin example). Subject: <strong>Ellie's first pass on The Mercer</strong> · Attachment: IC-first-pass.pdf
+        Preview with sample values (Austin example). Subject: <strong>Ellie Jr.'s first pass on The Mercer</strong> · Attachment: IC-first-pass.pdf
       </div>
       <div style={{ display: "none", maxHeight: 0, overflow: "hidden", opacity: 0 }}>
         Your one-page IC first pass is attached. Verdict: {e.verdict}.
@@ -70,7 +70,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
             <table {...tbl}><tbody><tr>
               <td width="64" valign="middle"><img src="/mark5d.webp" width="58" height="48" alt="5D" style={{ display: "block", border: 0 }} /></td>
               <td valign="middle" style={{ paddingLeft: 14, fontFamily: DISPLAY, fontSize: 26, lineHeight: 1, letterSpacing: ".03em", textTransform: "uppercase", color: "#ffffff" }}>
-                Deal Screen: <span style={{ color: "#f35202" }}>Ellie's first pass</span>
+                Deal Screen: <span style={{ color: "#f35202" }}>Ellie Jr.'s first pass</span>
               </td>
             </tr></tbody></table>
           </td></tr>
@@ -78,7 +78,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
           {/* Intro */}
           <tr><td className="px" style={{ padding: "30px 32px 8px", fontSize: 14, lineHeight: 1.6 }}>
             <p style={{ margin: "0 0 14px" }}>Hi {e.firstName},</p>
-            <p style={{ margin: "0 0 14px" }}>Ellie's first pass on <strong>{e.dealName}</strong> ({e.market}) is attached as a one-page PDF. Here's the short version.</p>
+            <p style={{ margin: "0 0 14px" }}>Ellie Jr.'s first pass on <strong>{e.dealName}</strong> ({e.market}) is attached as a one-page PDF. Here's the short version.</p>
           </td></tr>
 
           {/* Snapshot */}

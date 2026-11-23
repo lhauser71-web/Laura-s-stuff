@@ -124,7 +124,7 @@ export default function Report({ text, running, score }) {
   const others = r.order.filter((k) => k.startsWith("other:"));
 
   if (!r.verdict && running) {
-    return <div className="rp-wait"><span className="rp-dot" /> Ellie is reading the deal…</div>;
+    return <div className="rp-wait"><span className="rp-dot" /> Ellie Jr. is reading the deal…</div>;
   }
 
   return (
@@ -134,7 +134,7 @@ export default function Report({ text, running, score }) {
           <div className="rp-rag">
             <span className="rp-rag-icon"><RagIcon rag={r.verdict.rag} /></span>
             <div>
-              <div className="rp-kicker">Ellie's verdict</div>
+              <div className="rp-kicker">Ellie Jr.'s verdict</div>
               <div className="rp-rag-label">{r.verdict.label}</div>
               <div className="rp-rag-note">{RAG_NOTE[r.verdict.rag]}</div>
             </div>
@@ -222,7 +222,7 @@ export default function Report({ text, running, score }) {
         </section>
       ))}
 
-      {running && <div className="rp-wait"><span className="rp-dot" /> Ellie is still writing…</div>}
+      {running && <div className="rp-wait"><span className="rp-dot" /> Ellie Jr. is still writing…</div>}
     </div>
   );
 }
