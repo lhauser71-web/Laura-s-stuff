@@ -358,8 +358,8 @@ button.primary[disabled]{opacity:.45}
 .intro{padding:4px 0 0}
 .intro p{margin:0;max-width:760px}
 .intro-who{font-size:17px;line-height:1.5;color:var(--ink)}
-.intro-what{margin-top:6px !important;font-size:14px;line-height:1.6;color:#4d4a4a}
-@media (max-width:640px){.intro-row{grid-template-columns:minmax(0,1fr)}.intro-row > .step-n.spacer{display:none}.intro-who{font-size:15px}.intro-what{font-size:13px}}
+.intro-what{margin-top:6px !important;font-size:17px;line-height:1.5;color:#4d4a4a}
+@media (max-width:640px){.intro-row{grid-template-columns:minmax(0,1fr)}.intro-row > .step-n.spacer{display:none}.intro-who{font-size:15px}.intro-what{font-size:15px}}
 
 /* No step numerals: cards run the full width of the column */
 .step-row{grid-template-columns:minmax(0,1fr) !important}
