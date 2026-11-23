@@ -8,6 +8,14 @@ const AI_IDLE = "Ellie reads the numbers above plus your notes, then writes what
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const FREE_MAIL = /@(gmail|googlemail|yahoo|hotmail|outlook|live|icloud|me|aol|proton|protonmail)\./i;
 
+function LockIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  );
+}
+
 function parseVals(v) {
   const o = {};
   FIELDS.forEach((f) => {
@@ -37,7 +45,6 @@ export default function DealScreen() {
   const [example, setExample] = useState("blank");
   const [vals, setVals] = useState(EXAMPLES.blank);
   const [inputsOpen, setInputsOpen] = useState(false);
-  const [askLead, setAskLead] = useState(false);
   const staleRef = useRef(false);
   const [tags, setTags] = useState({});
 
@@ -84,12 +91,6 @@ export default function DealScreen() {
     autoNumbersRef.current = false;
     if (M && numbersRef.current) setTimeout(() => numbersRef.current && numbersRef.current.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
   }, [M, vals]);
-
-  function startEllie() {
-    if (leadDone) { runAI(true); return; }
-    setAskLead(true);
-    setTimeout(() => nameRef.current && nameRef.current.focus(), 50);
-  }
 
   // ---------- form ----------
   function clearAI() {
@@ -300,17 +301,19 @@ export default function DealScreen() {
         <section>
           <div className="steps">
             {/* STEP 1: enter the deal */}
+            <div className="step-row">
+            <div className="step-n" aria-hidden="true">1</div>
             <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
               <h2>Enter your deal</h2>
               <p className="lede">Simply paste a broker listing, upload a screenshot or enter the deal information below. No listing to hand? Use sample data.</p>
               <textarea id="tz" placeholder="Paste the listing or teaser text here" value={tz} disabled={tzBusy} onChange={(e) => setTz(e.target.value)}
                 onPaste={(e) => { const p = e.clipboardData.getData("text"); if (!p.trim()) return; const el = e.currentTarget; const next = el.value.slice(0, el.selectionStart) + p + el.value.slice(el.selectionEnd); fillFromTeaser({ text: next }); }} />
               <div className="row upload-row">
-                <span className="or">or</span>
                 <label className="upload">Upload document/brochure
                   <input type="file" ref={fileRef} accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
                     onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) fillFromTeaser({ file: f }); fileRef.current.value = ""; }} />
                 </label>
+                <span className="or">or</span>
                 <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
                 {fileName && <span className="file-name">{fileName}</span>}
               </div>
@@ -347,9 +350,15 @@ export default function DealScreen() {
                 <p className="hint">Assumes 2% closing and 2% sale costs; capex funded from equity in year 1. Nothing you type here is stored.</p>
               </details>
 
-              <div className="numbers-inline" ref={numbersRef}>
-                <h2 className="numbers-h">The numbers{D.name ? <small>{D.name}</small> : null}</h2>
-                {!M && (D.name || isFinite(D.price)) ? <p className="status" style={{ marginTop: 0 }}>{"Still missing: " + missingCore(D) + "."}</p> : null}
+            </form>
+            </div>
+
+            {/* STEP 2: the numbers (locked until there's a deal) */}
+            <div className="step-row">
+            <div className="step-n" aria-hidden="true">2</div>
+            <div className={"card step" + (M ? "" : " locked")} ref={numbersRef}>
+              <div className="locked-body" {...(M ? {} : { inert: "", "aria-hidden": "true" })}>
+                <h2>See the numbers{D.name ? <small>{D.name}</small> : null}</h2>
                 <div className="metrics">
                   {tiles.map(([k, v, n, cls]) => (
                     <div className={"metric " + cls} key={k}><span className="k">{k}</span><span className="v">{v}</span><span className="n">{n}</span></div>
@@ -379,35 +388,32 @@ export default function DealScreen() {
                       <p className="hint">Outlined cell is your base case. Red under 8%, amber 8–13%, green 13%+ levered IRR.</p>
 
                   </>
-                ) : (
-                  <p className="hint">Paste a listing, upload a brochure, use sample data or enter the deal above, and the numbers fill in here.</p>
-                )}
+                ) : null}
               </div>
-            </form>
+              {!M && <div className="lock-badge"><LockIcon />{D.name || isFinite(D.price) ? "Still missing: " + missingCore(D) + "." : "Add a deal in step 1 to unlock"}</div>}
+            </div>
+            </div>
 
-            {M && (<>
-            <div className="card step ellie-card" ref={aiRef}>
+
+            {/* STEP 3: Ellie's first pass (locked until there's a deal) */}
+            <div className="step-row">
+            <div className="step-n" aria-hidden="true">3</div>
+            <div className={"card step ellie-card" + (M ? "" : " locked")} ref={aiRef}>
+              <div className="locked-body" {...(M ? {} : { inert: "", "aria-hidden": "true" })}>
               <div className="ellie-id" style={{ marginBottom: 14 }}>
                 <img className="ellie" src="/ellie.webp" alt="Ellie" width="52" height="52" />
                 <div><h2 style={{ margin: 0 }}>Ellie's first pass</h2><small>Verdict, red flags, broker questions and the data-room list</small></div>
               </div>
 
-              {!leadDone && !askLead && (
-                <div className="row">
-                  <button type="button" className="primary" disabled={!M} onClick={startEllie}>Run Ellie's first pass</button>
-                </div>
-              )}
-
-              {!leadDone && askLead && (
+              {!leadDone && (
                 <form className="capture-in" noValidate onSubmit={submitLead}>
                   <h3 className="sub" style={{ marginTop: 0 }}>Where should we send your first pass?</h3>
-                  <p style={{ margin: "0 0 12px", maxWidth: "70ch" }}>Add your name and work email to see Ellie's first pass here. We'll also email you a one-page PDF copy, with a link back so you can rerun it.</p>
                   <div className="fields two">
                     <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
                     <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
                   </div>
                   <div className="row" style={{ marginTop: 14 }}>
-                    <button type="submit" className="primary" disabled={lBusy}>Get Ellie's first pass</button>
+                    <button type="submit" className="primary" disabled={lBusy || !M}>Get Ellie's first pass</button>
                     {lStatus && <span className="status">{lStatus}</span>}
                   </div>
                   <p className="hint" style={{ margin: "10px 0 0" }}>We'll use these details to send your brief and to follow up about Fifth Dimension. Unsubscribe any time.</p>
@@ -425,15 +431,20 @@ export default function DealScreen() {
                   <div id="ai" dangerouslySetInnerHTML={{ __html: md(aiText) }} />
                 </>
               )}
+              </div>
+              {!M && <div className="lock-badge"><LockIcon />Unlocks with the numbers</div>}
+            </div>
             </div>
 
             {leadResult && (
+              <div className="step-row">
+              <div className="step-n spacer" aria-hidden="true" />
               <div className="card step">
                 {lStatus && <p className="hint" style={{ marginTop: 0 }}>{lStatus}</p>}
                 <LeadResult r={leadResult} />
               </div>
+              </div>
             )}
-            </>)}
           </div>
 
           <div className="foot-logo"><img src="/logo-ink.webp" alt="Fifth Dimension" height="20" /></div>
