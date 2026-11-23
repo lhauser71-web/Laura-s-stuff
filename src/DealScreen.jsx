@@ -318,7 +318,6 @@ export default function DealScreen() {
                 {fileName && <span className="file-name">{fileName}</span>}
               </div>
               {tzStatus && <p className="status">{tzStatus}</p>}
-              <p className="hint">Public documents only. Keep the OM and rent roll for Solo.</p>
 
               <details className="inputs" open={inputsOpen} onToggle={(e) => setInputsOpen(e.currentTarget.open)}>
                 <summary>Enter deal info manually{D.name ? <small>{D.name}</small> : null}</summary>
