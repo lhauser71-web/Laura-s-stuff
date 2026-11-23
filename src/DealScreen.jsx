@@ -304,7 +304,7 @@ export default function DealScreen() {
             {/* STEP 1: enter the deal */}
             <form id="deal" className="card step" autoComplete="off" noValidate onSubmit={(e) => e.preventDefault()}>
               <h2>Enter your deal</h2>
-              <p className="lede">Paste a broker listing or upload a screenshot, and Ellie fills in the numbers. No listing to hand? Use sample data.</p>
+              <p className="lede">Simply paste a broker listing, upload a screenshot or enter the deal information below. No listing to hand? Use sample data.</p>
               <textarea id="tz" placeholder="Paste the listing or teaser text here" value={tz} onChange={(e) => setTz(e.target.value)} />
               <div className="row upload-row">
                 <span className="or">or</span>
