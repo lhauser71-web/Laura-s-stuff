@@ -111,7 +111,7 @@ export default async function handler(req, res) {
     await tx.sendMail({
       from: { name: "Laura from Fifth Dimension", address: user },
       to, replyTo: user, subject, html, text,
-      attachments: [{ filename: `Fifth Dimension: ${shortName.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim()} Screen.pdf`, content: Buffer.from(pdf), contentType: "application/pdf" }],
+      attachments: [{ filename: `Fifth Dimension - ${shortName.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim()} Screen.pdf`, content: Buffer.from(pdf), contentType: "application/pdf" }],
     });
     return json(200, { ok: true });
   } catch (e) {
