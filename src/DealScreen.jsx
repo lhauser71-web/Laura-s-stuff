@@ -151,11 +151,11 @@ export default function DealScreen() {
   async function fillFromTeaser() {
     const t = tz.trim();
     const file = fileRef.current && fileRef.current.files[0];
-    if (!t && !file) { setTzStatus("Paste a teaser or listing, or upload a screenshot of one."); return; }
+    if (!t && !file) { setTzStatus("Paste a teaser or listing, or upload a document or brochure."); return; }
     let image = null;
     if (file && !t) {
       try { image = await fileToImage(file); }
-      catch (e) { setTzStatus(e && e.code === "too_big" ? "That screenshot is too large. Try one under 4.5 MB, or paste the text." : "Couldn't open that file. Paste the text instead."); return; }
+      catch (e) { setTzStatus(e && e.code === "too_big" ? "That file is too large. Try one under 4.5 MB, or paste the text." : "Couldn't open that file. Paste the text instead."); return; }
     }
     setTzBusy(true);
     setTzStatus("Ellie is reading the document…");
@@ -308,8 +308,8 @@ export default function DealScreen() {
               <textarea id="tz" placeholder="Paste the listing or teaser text here" value={tz} onChange={(e) => setTz(e.target.value)} />
               <div className="row upload-row">
                 <span className="or">or</span>
-                <label className="upload">Upload a screenshot
-                  <input type="file" ref={fileRef} accept="image/png,image/jpeg,image/gif,image/webp"
+                <label className="upload">Upload document/brochure
+                  <input type="file" ref={fileRef} accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
                     onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) setTzStatus("Ready to read " + f.name + "."); }} />
                 </label>
                 {fileName && <span className="file-name">{fileName}</span>}
@@ -322,7 +322,7 @@ export default function DealScreen() {
               <p className="hint">Public documents only. Keep the OM and rent roll for Solo.</p>
 
               <details className="inputs" open={inputsOpen} onToggle={(e) => setInputsOpen(e.currentTarget.open)}>
-                <summary>Check and edit the details{D.name ? <small>{D.name}</small> : null}</summary>
+                <summary>Enter deal info manually{D.name ? <small>{D.name}</small> : null}</summary>
                 <label className="full" style={{ margin: "12px 0" }}>Load a sample deal
                   <select value={example} onChange={(e) => loadExample(e.target.value)}>
                     {EXAMPLE_OPTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
