@@ -98,6 +98,13 @@ export default function DealScreen() {
     setScreen("deal");
     try { window.history.replaceState(null, "", "/" + window.location.search); } catch {}
   }
+  // Solo pop-up: once per visit, 20 seconds after the user lands on the results (cancelled if they leave first).
+  useEffect(() => {
+    if (screen !== "results" || soloShownRef.current) return;
+    const t = setTimeout(() => { if (!soloShownRef.current) { soloShownRef.current = true; openSolo(); } }, 20000);
+    return () => clearTimeout(t);
+  }, [screen]);
+
   useEffect(() => {
     if (screen === "deal" && leadDone) setTimeout(() => aiRef.current && aiRef.current.scrollIntoView({ block: "start" }), 0);
   }, [screen]);
@@ -272,7 +279,6 @@ export default function DealScreen() {
         setAiRan(true);
         staleRef.current = false;
         setSoloBtn(true);
-        if (!soloShownRef.current) { soloShownRef.current = true; setTimeout(openSolo, 1500); }
         setAiStatus("");
         return full;
       } finally {
@@ -285,7 +291,6 @@ export default function DealScreen() {
       setAiRan(true);
       staleRef.current = false;
       setSoloBtn(true);
-      if (!soloShownRef.current) { soloShownRef.current = true; setTimeout(openSolo, 1500); }
       setAiStatus("First pass done in " + Math.round((performance.now() - t0) / 1000) + "s. Check it before you rely on it.");
       return res.text;
     } catch (e) {
