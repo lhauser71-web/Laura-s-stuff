@@ -11,6 +11,31 @@ import { scoreMetric } from "./lib/score.js";
 const AI_IDLE = "Ellie Jr. reads the numbers above plus your notes, then writes what a good senior analyst would put in front of IC.";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
+// Shown while Ellie Jr. reads a pasted listing or uploaded brochure, then lists what she filled in.
+function ReadingPanel({ r }) {
+  const done = r.phase === "done";
+  return (
+    <div className={"read-card" + (done ? " done" : "")} role="status" aria-live="polite">
+      <div className="read-ava"><img src="/ellie.webp" alt="" width="44" height="44" />{done && <span className="read-tick" aria-hidden="true">✓</span>}</div>
+      <div className="read-body">
+        {done ? (
+          <>
+            <div className="read-title">Ellie Jr. read the document and filled {r.filled.length} field{r.filled.length === 1 ? "" : "s"}</div>
+            <div className="read-chips">{r.filled.map((f, i) => <span key={f} style={{ animationDelay: i * 110 + "ms" }}>✓ {f}</span>)}</div>
+            <div className="read-hint">{r.missing.length ? "Still needed: " + r.missing.join(", ") + ". " : ""}Check the details below.</div>
+          </>
+        ) : (
+          <>
+            <div className="read-title">Ellie Jr. is reading<span className="read-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></div>
+            <div className="read-step" key={r.step}>{r.step}</div>
+          </>
+        )}
+        <div className="read-bar"><i style={{ width: Math.round((r.progress || 0) * 100) + "%" }} /></div>
+      </div>
+    </div>
+  );
+}
+
 function LockIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -53,6 +78,8 @@ export default function DealScreen() {
 
   const [tz, setTz] = useState("");
   const [tzStatus, setTzStatus] = useState("");
+  // Live "Ellie Jr. is reading" panel: { phase: "reading" | "done", step, progress, filled[], missing[] }
+  const [read, setRead] = useState(null);
   const [tzBusy, setTzBusy] = useState(false);
   const fileRef = useRef(null);
   const [fileName, setFileName] = useState("");
@@ -140,6 +167,7 @@ export default function DealScreen() {
   function loadSample() {
     loadExample("aus");
     setTz("");
+    setRead(null);
     if (fileRef.current) fileRef.current.value = "";
     setFileName("");
     setInputsOpen(true);
@@ -151,7 +179,7 @@ export default function DealScreen() {
   // Manual entry starts from a blank deal, unless Ellie has already filled it from a listing.
   function openManual() {
     // Always opens (never closes) the deal-info form, starting blank unless Ellie filled it from a listing.
-    if (example !== "blank") { loadExample("blank"); setTzStatus(""); }
+    if (example !== "blank") { loadExample("blank"); setTzStatus(""); setRead(null); }
     setInputsOpen(true);
     setTimeout(() => { const el = document.getElementById("deal-inputs"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
   }
@@ -187,33 +215,46 @@ export default function DealScreen() {
     if (!t && !file) return;
     let image = null, docText = "";
     setTzBusy(true);
-    setTzStatus("Ellie Jr. is reading the document…");
+    setTzStatus("");
+    setRead({ phase: "reading", step: file ? "Opening " + (file.name || "the document") + "…" : "Reading the listing…", progress: 0.06 });
     if (file) {
       const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name || "");
       try {
         if (isPdf) {
           if (file.size > 50 * 1024 * 1024) throw { code: "too_big_pdf" };
           // Read the text here in the browser; only fall back to sending the file for scanned PDFs with no text.
-          const { text: pt } = await pdfToText(file);
+          const { text: pt } = await pdfToText(file, (i, n) => setRead((r) => r && r.phase === "reading" ? { ...r, step: `Reading page ${i} of ${n}…`, progress: 0.06 + (i / n) * 0.34 } : r));
           if (pt.replace(/--- page \d+ ---/g, "").trim().length > 400) docText = pt;
           else image = await fileToImage(file);
         } else image = await fileToImage(file);
       } catch (e) {
         setTzBusy(false);
+        setRead(null);
         setTzStatus(e && e.code === "too_big_pdf" ? "That PDF is over 50 MB. Try a smaller file, or paste the text."
           : e && e.code === "too_big" ? "That file is over 3 MB. Try a smaller image, a PDF with selectable text, or paste the text."
           : "Couldn't open that file. Paste the text instead.");
         return;
       }
     }
+    // While Ellie Jr. works: step through what she is looking for, and ease the bar towards the end.
+    const STEPS = ["Finding the price and size…", "Looking for income and occupancy…", "Checking rents and lease terms…", "Noting risks the broker mentions…", "Filling in the deal fields…"];
+    let si = 0;
+    setRead((r) => ({ ...r, step: STEPS[0], progress: Math.max(r?.progress || 0, 0.42) }));
+    const tick = setInterval(() => {
+      si = Math.min(si + 1, STEPS.length - 1);
+      setRead((r) => r && r.phase === "reading" ? { ...r, step: STEPS[si], progress: r.progress + (0.94 - r.progress) * 0.18 } : r);
+    }, 1500);
     try {
       const res = await askEllie({ task: "extract", text: docText || t, image: docText ? null : image });
       const m = (res.text || "").match(/\{[\s\S]*\}/);
       if (!m) throw { code: "parse" };
-      applyTeaser(JSON.parse(m[0]));
+      const { filled, missing } = applyTeaser(JSON.parse(m[0]));
+      setRead({ phase: "done", progress: 1, filled, missing });
     } catch (e) {
+      setRead(null);
       setTzStatus(errorMessage(e, "Ellie Jr. couldn't read that one. Try pasting the text, or type the numbers in."));
     } finally {
+      clearInterval(tick);
       setTzBusy(false);
     }
   }
@@ -224,8 +265,10 @@ export default function DealScreen() {
     const v = (k) => { const o = x[k]; const val = o && typeof o === "object" ? o.value : o; return val === null || val === undefined || val === "" ? null : val; };
     const q = (k) => (x[k] && x[k].source ? "“" + String(x[k].source).slice(0, 90) + "”" : "the document");
     const numv = (k) => { const a = v(k); if (a === null) return NaN; return typeof a === "number" ? a : parseFloat(String(a).replace(/[^0-9.\-]/g, "")); };
-    const from = (k) => ({ text: "From the document: " + q(k), cls: "" });
-    const miss = (id, msg) => { nv[id] = ""; nt[id] = { text: msg || "Not in the document: add it", cls: "miss" }; };
+    const LABEL = { name: "Deal name", market: "Market", asset: "Asset type", size: "Size", price: "Price", occ: "Occupancy", noi: "NOI" };
+    const filled = [], missing = [];
+    const from = (k) => { filled.push(LABEL[k] || k); return { text: x[k] && x[k].source ? "From the document: " + q(k) : "From the document", cls: "" }; };
+    const miss = (id, msg) => { nv[id] = ""; nt[id] = { text: msg || "Not in the document: add it", cls: "miss" }; missing.push(LABEL[id] || id); };
     let found = 0;
 
     ["name", "market"].forEach((k) => { const a = v(k); if (a !== null) { nv[k] = String(a); nt[k] = from(k); found++; } else miss(k); });
@@ -235,7 +278,7 @@ export default function DealScreen() {
     ["size", "price", "occ"].forEach((k) => { const a = numv(k); if (isFinite(a)) { nv[k] = a; nt[k] = from(k); found++; } else miss(k); });
     const noi = numv("noi"), cap = numv("cap"), price = parseFloat(nv.price);
     if (isFinite(noi)) { nv.noi = noi; nt.noi = from("noi"); found++; }
-    else if (isFinite(cap) && isFinite(price)) { nv.noi = Math.round((price * cap) / 100); nt.noi = { text: "Worked out: " + cap + "% cap rate × price, from " + q("cap"), cls: "" }; found++; }
+    else if (isFinite(cap) && isFinite(price)) { nv.noi = Math.round((price * cap) / 100); nt.noi = { text: "Worked out: " + cap + "% cap rate × price, from " + q("cap"), cls: "" }; filled.push("NOI (from cap rate)"); found++; }
     else miss("noi", "Not in the document: add NOI or a cap rate");
     const plan = v("plan"); if (plan) { nv.plan = String(plan); nt.plan = { text: "Summarised from the document", cls: "" }; } else nv.plan = "";
     const om = v("om"); if (om) { nv.om = Array.isArray(om) ? om.join(" ") : String(om); nt.om = { text: "Pulled from the document", cls: "" }; } else nv.om = "";
@@ -252,8 +295,9 @@ export default function DealScreen() {
     setExample("blank");
     clearAI();
     setInputsOpen(true);
-    setTzStatus("Ellie Jr. filled " + found + " fields from the document. Check them below, and add anything that's missing.");
+    setTzStatus("");
     autoNumbersRef.current = true;
+    return { filled, missing };
   }
 
   // ---------- AI first pass ----------
@@ -446,6 +490,7 @@ export default function DealScreen() {
                 <button type="button" className={"ghost manual-btn" + (inputsOpen ? " on" : "")} aria-expanded={inputsOpen} aria-controls="deal-inputs" onClick={openManual}>Enter deal info manually</button>
                 {fileName && <span className="file-name">{fileName}</span>}
               </div>
+              {read && <ReadingPanel r={read} />}
               {tzStatus && <p className="status">{tzStatus}</p>}
 
               {inputsOpen && (

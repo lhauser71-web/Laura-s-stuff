@@ -4,7 +4,7 @@
 
 const MAX_PAGES = 60;
 
-export async function pdfToText(file) {
+export async function pdfToText(file, onPage) {
   const pdfjs = await import("pdfjs-dist");
   const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
@@ -12,6 +12,7 @@ export async function pdfToText(file) {
   const pages = Math.min(doc.numPages, MAX_PAGES);
   const out = [];
   for (let i = 1; i <= pages; i++) {
+    if (onPage) onPage(i, pages);
     const page = await doc.getPage(i);
     const tc = await page.getTextContent();
     let line = "", lastY = null;
