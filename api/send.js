@@ -11,6 +11,7 @@ import { EXAMPLES, FIELDS, NUMERIC } from "../src/data.js";
 import { calc, money, pct, bps } from "../src/lib/finance.js";
 import { SAMPLE_BRIEFS } from "../src/sampleBriefs.js";
 import { parseReport, parseNumber, parseFlag } from "../src/lib/reportParse.js";
+import { scoreMetric } from "../src/lib/score.js";
 import { buildEmail } from "./_lib/emailHtml.js";
 import { buildBriefPdf } from "./_lib/briefPdf.js";
 
@@ -80,7 +81,7 @@ export default async function handler(req, res) {
   const flags = (r.sections.flags?.items || []).map(parseFlag);
   const kpis = [["Going-in cap", pct(M.cap, 2)], ["DSCR", isFinite(M.dscr) ? M.dscr.toFixed(2) + "x" : "no debt"], ["Debt yield", isFinite(M.dy) ? pct(M.dy, 1) : "–"], ["Levered IRR", isFinite(M.irr) ? pct(M.irr, 1) : "n/m"]];
   const baseUrl = "https://" + host;
-  const subject = `Ellie Jr.'s first pass on ${shortName}`;
+  const subject = `Fifth Dimension Deal Screen: ${shortName}`;
 
   const { html, text } = buildEmail({
     subject, baseUrl,
@@ -99,7 +100,7 @@ export default async function handler(req, res) {
     meta: [clean(D.asset, 40), market, isFinite(D.size) ? D.size.toLocaleString("en-GB") + " " + clean(D.unit, 10) : ""].filter(Boolean).join(" · "),
     kpis: [["Price", money(D.price, D.ccy)], ["Going-in cap", pct(M.cap, 2)], ["DSCR", isFinite(M.dscr) ? M.dscr.toFixed(2) + "x" : "no debt"], ["Leverage spread", bps(M.spread)], ["Levered IRR", isFinite(M.irr) ? pct(M.irr, 1) : "n/m"], ["Equity multiple", M.em.toFixed(2) + "x"]],
     verdict: r.verdict.label, verdictRag: r.verdict.rag, verdictReason: r.verdict.why,
-    numbers: (r.sections.numbers?.items || []).map(parseNumber),
+    numbers: (r.sections.numbers?.items || []).map(parseNumber).map((n) => ({ ...n, score: scoreMetric(n.label, M) })),
     flags,
     questions: r.sections.questions?.items || [],
     dataroom: r.sections.dataroom?.items || [],

@@ -1,158 +1,304 @@
-// One-page IC first-pass PDF, built directly with pdf-lib (no browser needed).
-// Shrinks the body text a step at a time until everything fits on a single A4 page.
+// One-page IC first-pass PDF, styled like the results screen (src/Report.jsx + the .rp-* styles):
+// grey paper, page banner, 5D-black deal band with orange-topped KPI tiles, RAG verdict card,
+// black "three numbers" band with segmented bars, red-flag blockers, orange question cards,
+// data room checklist and the orange "what would change my mind" callout.
+// Brand fonts (League Gothic, IBM Plex Mono; SIL OFL, see assets/OFL-fonts.txt) are embedded.
+// Everything scales down together until it fits on a single A4 page.
 
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import fs from "node:fs";
+import { PDFDocument, rgb, LineCapStyle } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 
-const INK = rgb(0.125, 0.114, 0.114), MUTED = rgb(0.42, 0.4, 0.38), RULE = rgb(0.886, 0.886, 0.886);
-const ORANGE = rgb(0.882, 0.369, 0.161), WHITE = rgb(1, 1, 1), PAPER = rgb(0.945, 0.941, 0.933);
-const RAG = { red: rgb(0.851, 0.227, 0.184), amber: rgb(0.851, 0.541, 0), green: rgb(0.122, 0.616, 0.388) };
+const asset = (name) => fs.readFileSync(new URL(`./assets/${name}`, import.meta.url));
 
-// Standard PDF fonts only cover Latin-1 plus a few extras: map the rest to safe equivalents.
+const hex = (h) => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
+const mix = (a, b, t) => rgb(a.red + (b.red - a.red) * t, a.green + (b.green - a.green) * t, a.blue + (b.blue - a.blue) * t);
+const C = {
+  paper: hex("#f1f0ee"), panel: hex("#ffffff"), rule: hex("#e2e2e2"), ink: hex("#201d1d"), muted: hex("#6b6562"),
+  black: hex("#201d1d"), tile: hex("#2a2626"), tileLine: hex("#3a3534"), light: hex("#bdb6b1"), lighter: hex("#f2eeea"), dim: hex("#8a827d"),
+  orange: hex("#e15e29"), orangeTint: hex("#fdf0ea"), white: hex("#ffffff"), seg: hex("#3a3534"),
+};
+const RAG = { green: hex("#1f9d63"), amber: hex("#d98a00"), red: hex("#d93a2f") };
+const BAR = { green: hex("#3ccf8e"), amber: hex("#f5a524"), red: hex("#ff5a4f") };
+
+const ICON = {
+  x: "M6 6l12 12M18 6L6 18",
+  check: "M5 12.5l4.5 4.5L19 7",
+  bang: "M12 6v8M12 18.5v.01",
+  doc: "M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6",
+  bulb: "M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V16h8v-1.3A7 7 0 0 0 12 2z",
+};
+const rr = (w, h, r) => `M${r} 0H${w - r}A${r} ${r} 0 0 1 ${w} ${r}V${h - r}A${r} ${r} 0 0 1 ${w - r} ${h}H${r}A${r} ${r} 0 0 1 0 ${h - r}V${r}A${r} ${r} 0 0 1 ${r} 0Z`;
+
 function safe(s) {
-  return String(s ?? "")
-    .replace(/\*\*/g, "")
-    .replace(/[−‑]/g, "-").replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
-    .replace(/→/g, "->").replace(/≥/g, ">=").replace(/≤/g, "<=").replace(/✓/g, "")
-    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF–—•…·×£€]/g, "");
+  return String(s ?? "").replace(/\*\*/g, "").replace(/→/g, "->").replace(/≥/g, ">=").replace(/≤/g, "<=").replace(/[✓✔]/g, "")
+    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]/gu, "").replace(/\s+/g, " ").trim();
 }
-
 function wrap(text, font, size, width) {
   const out = [];
-  for (const para of safe(text).split(/\n/)) {
-    let line = "";
-    for (const word of para.split(/\s+/).filter(Boolean)) {
-      const t = line ? line + " " + word : word;
-      if (font.widthOfTextAtSize(t, size) <= width) line = t;
-      else { if (line) out.push(line); line = word; }
-    }
-    out.push(line);
+  let line = "";
+  for (const word of safe(text).split(" ").filter(Boolean)) {
+    const t = line ? line + " " + word : word;
+    if (font.widthOfTextAtSize(t, size) <= width || !line) line = t;
+    else { out.push(line); line = word; }
   }
+  if (line) out.push(line);
   return out;
 }
+const splitUnit = (v) => { const m = String(v).match(/^(.*?\d)\s?(bps|bn|m|M|k)$/); return m ? [m[1], m[2]] : [String(v), ""]; };
 
 export async function buildBriefPdf(b) {
-  for (const scale of [1, 0.94, 0.88, 0.82, 0.76, 0.7]) {
-    const doc = await PDFDocument.create();
-    const pdf = await draw(doc, b, scale);
-    if (pdf) return pdf;
-  }
-  return draw(await PDFDocument.create(), b, 0.7, true);
+  const files = { lg: asset("LeagueGothic.ttf"), mono: asset("IBMPlexMono-Regular.ttf"), monoB: asset("IBMPlexMono-SemiBold.ttf"), mark: asset("mark5d.png"), logo: asset("logo-ink.png") };
+  // Measure at decreasing scales, then draw once at the largest scale that fits one page.
+  const probe = await setup(files);
+  let k = 1;
+  for (const s of [1, 0.95, 0.9, 0.86, 0.82, 0.78, 0.74, 0.7, 0.66, 0.62]) { k = s; if (layout(probe, b, s, true)) break; }
+  const ctx = await setup(files);
+  layout(ctx, b, k, false);
+  return ctx.doc.save();
 }
 
-async function draw(doc, b, k, force = false) {
-  doc.setTitle(safe(`IC first pass: ${b.dealName}`));
-  doc.setAuthor("5D Deal Screen");
-  const reg = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const W = 595.28, H = 841.89, M = 36, CW = W - M * 2;
-  const page = doc.addPage([W, H]);
+async function setup(f) {
+  const doc = await PDFDocument.create();
+  doc.registerFontkit(fontkit);
+  return {
+    doc,
+    lg: await doc.embedFont(f.lg, { subset: true }),
+    mono: await doc.embedFont(f.mono, { subset: true }),
+    monoB: await doc.embedFont(f.monoB, { subset: true }),
+    mark: await doc.embedPng(f.mark),
+    logo: await doc.embedPng(f.logo),
+  };
+}
+
+// Returns true if everything fits above the footer. With dry=true nothing is drawn.
+function layout(ctx, b, k, dry) {
+  const { doc, lg, mono, monoB } = ctx;
+  const W = 595.28, H = 841.89, M = 26, CW = W - 2 * M, FOOT = 34;
+  const page = dry ? null : doc.addPage([W, H]);
+  if (!dry) { doc.setTitle(safe(`IC first pass: ${b.dealName}`)); doc.setAuthor("Fifth Dimension Deal Screen"); }
+  const P = (fn) => { if (!dry) fn(page); };
+  const text = (s, x, y, size, font, color, opts = {}) => P((p) => p.drawText(safe(s), { x, y, size, font, color, ...opts }));
+  const rect = (x, top, w, h, color, extra = {}) => P((p) => p.drawRectangle({ x, y: top - h, width: w, height: h, color, ...extra }));
+  const round = (x, top, w, h, r, opts) => P((p) => p.drawSvgPath(rr(w, h, r), { x, y: top, ...opts }));
+  const icon = (name, cx, cy, size, color, width = 3) => P((p) => p.drawSvgPath(ICON[name], { x: cx - size / 2, y: cy + size / 2, scale: size / 24, borderColor: color, borderWidth: width, borderLineCap: LineCapStyle.Round }));
+  const lh = (s, f = 1.42) => s * f;
+  const GAP = 9 * k;
+
+  P((p) => p.drawRectangle({ x: 0, y: 0, width: W, height: H, color: C.paper }));
   let y = H;
 
-  const text = (s, x, yy, size, font = reg, color = INK) => page.drawText(safe(s), { x, y: yy, size, font, color });
-  const para = (s, x, width, size, font = reg, color = INK, lh = 1.35) => {
-    for (const l of wrap(s, font, size, width)) { y -= size * lh; text(l, x, y, size, font, color); }
-  };
-  const heading = (s) => { y -= 16 * k; text(s.toUpperCase(), M, y - 11 * k, 11 * k, bold, INK); y -= 15 * k; };
-  const fits = () => force || y > M + 20;
-
-  // Header band
-  page.drawRectangle({ x: 0, y: H - 46, width: W, height: 46, color: INK });
-  text("DEAL SCREEN", M, H - 29, 13, bold, WHITE);
-  text("Ellie Jr.'s first pass", M + bold.widthOfTextAtSize("DEAL SCREEN", 13) + 8, H - 29, 13, reg, ORANGE);
-  const d = safe(b.date);
-  text(d, W - M - reg.widthOfTextAtSize(d, 9), H - 28, 9, reg, rgb(0.74, 0.71, 0.69));
-  y = H - 46 - 20;
-
-  // Deal
-  para(b.dealName, M, CW, 17 * k, bold, INK, 1.15);
-  if (b.meta) para(b.meta, M, CW, 9 * k, reg, MUTED);
-
-  // KPI row
-  y -= 10 * k;
-  const kw = CW / b.kpis.length, kh = 38 * k;
-  b.kpis.forEach(([kk, v], i) => {
-    const x = M + i * kw;
-    page.drawRectangle({ x, y: y - kh, width: kw - 4, height: kh, color: PAPER });
-    page.drawRectangle({ x, y: y - 2.5, width: kw - 4, height: 2.5, color: ORANGE });
-    text(kk.toUpperCase(), x + 6, y - 13 * k, 6.5 * k, reg, MUTED);
-    text(v, x + 6, y - 30 * k, 14 * k, bold, INK);
-  });
-  y -= kh;
-
-  // Verdict
+  // ---- page banner (same as the site header) ----
+  const markH = 24 * k, markW = (ctx.mark.width / ctx.mark.height) * markH;
+  P((p) => p.drawImage(ctx.mark, { x: M, y: H - 9 * k - markH, width: markW, height: markH }));
+  const t1 = "DEAL SCREEN: A SENIOR ANALYST ", t2 = "ON EVERY DEAL", ts = 17 * k;
+  text(t1, M + markW + 12 * k, H - 9 * k - markH / 2 - ts * 0.33, ts, lg, C.muted);
+  text(t2, M + markW + 12 * k + lg.widthOfTextAtSize(t1, ts), H - 9 * k - markH / 2 - ts * 0.33, ts, lg, hex("#a39b95"));
+  y = H - 18 * k - markH;
+  P((p) => p.drawLine({ start: { x: 0, y }, end: { x: W, y }, thickness: 0.6, color: C.rule }));
   y -= 12 * k;
-  const rc = RAG[b.verdictRag] || RAG.amber;
-  const vTop = y;
-  const vLines = wrap(b.verdictReason, reg, 9.5 * k, CW - 24);
-  const vh = 30 * k + vLines.length * 9.5 * k * 1.35 + 10;
-  page.drawRectangle({ x: M, y: vTop - vh, width: CW, height: vh, color: rgb(0.99, 0.95, 0.94), borderColor: RULE, borderWidth: 0.5 });
-  page.drawRectangle({ x: M, y: vTop - vh, width: 5, height: vh, color: rc });
-  text("ELLIE JR.'S VERDICT", M + 14, vTop - 12 * k, 6.5 * k, reg, MUTED);
-  text(b.verdict.toUpperCase(), M + 14, vTop - 30 * k, 18 * k, bold, rc);
-  y = vTop - 30 * k - 4;
-  for (const l of vLines) { y -= 9.5 * k * 1.35; text(l, M + 14, y, 9.5 * k, reg, INK); }
-  y = vTop - vh;
 
-  // Three numbers
+  // ---- deal band ----
+  {
+    const pad = 16 * k, iw = CW - 2 * pad;
+    const nameS = 30 * k, nameLines = wrap(String(b.dealName).toUpperCase(), lg, nameS, iw);
+    const kH = 36 * k;
+    const h = pad + lh(6.5 * k) + 3 * k + nameLines.length * nameS * 0.98 + 4 * k + lh(7.5 * k) + 12 * k + kH + pad;
+    rect(M, y, CW, h, C.black);
+    let yy = y - pad - 6.5 * k;
+    text(`DEAL SCREEN ANALYSIS  ·  ${String(b.date).toUpperCase()}`, M + pad, yy, 6.5 * k, mono, hex("#a39b95"), { characterSpacing: 0.8 * k });
+    yy -= 3 * k;
+    for (const l of nameLines) { yy -= nameS * 0.98; text(l, M + pad, yy + nameS * 0.18, nameS, lg, C.white); }
+    yy -= 4 * k + 7.5 * k;
+    if (b.meta) text(b.meta, M + pad, yy, 7.5 * k, mono, C.light);
+    yy -= 12 * k;
+    const n = b.kpis.length, tw = iw / n;
+    rect(M + pad, yy, iw, kH, C.tileLine);
+    b.kpis.forEach(([kk, v], i) => {
+      const x = M + pad + i * tw;
+      rect(x + 0.5, yy - 0.5, tw - 1, kH - 1, C.tile);
+      rect(x + 0.5, yy - 0.5, tw - 1, 2.5 * k, C.orange);
+      text(String(kk).toUpperCase(), x + 8 * k, yy - 13 * k, 5.8 * k, mono, C.light, { characterSpacing: 0.5 * k });
+      text(v, x + 8 * k, yy - 30 * k, 19 * k, lg, C.white);
+    });
+    y -= h + GAP;
+  }
+
+  // ---- verdict ----
+  {
+    const rag = b.verdictRag || "amber", rc = RAG[rag];
+    const pad = 14 * k, d = 30 * k, labS = 34 * k, whyS = 9 * k;
+    const whyLines = wrap(b.verdictReason, mono, whyS, CW - 2 * pad - 8 * k);
+    const rowH = Math.max(d, lh(6 * k) + labS * 0.9);
+    const h = pad + rowH + 10 * k + whyLines.length * lh(whyS, 1.5) + pad - 4 * k;
+    rect(M, y, CW, h, mix(C.white, rc, 0.07), { borderColor: mix(C.rule, rc, 0.35), borderWidth: 0.6 });
+    rect(M, y, 7 * k, h, rc);
+    const cx = M + 7 * k + pad + d / 2, cy = y - pad - rowH / 2;
+    P((p) => p.drawCircle({ x: cx, y: cy, size: d / 2, color: rc }));
+    icon(rag === "green" ? "check" : rag === "red" ? "x" : "bang", cx, cy, d * 0.55, C.white, 3);
+    const tx = M + 7 * k + pad + d + 12 * k;
+    text("ELLIE JR.'S VERDICT", tx, y - pad - 6 * k, 6 * k, mono, C.muted, { characterSpacing: 0.9 * k });
+    text(String(b.verdict).toUpperCase(), tx, y - pad - lh(6 * k) - labS * 0.78, labS, lg, rc);
+    let yy = y - pad - rowH - 10 * k;
+    for (const l of whyLines) { yy -= whyS * 1.15; text(l, M + 7 * k + pad, yy, whyS, mono, C.ink); yy -= whyS * 0.35; }
+    y -= h + GAP;
+  }
+
+  // ---- the three numbers that matter (black band) ----
   if (b.numbers.length) {
-    heading("The three numbers that matter");
-    const n = b.numbers.length, gw = CW / n;
-    const top = y;
-    let low = y;
-    b.numbers.forEach((num, i) => {
-      const x = M + i * gw;
-      y = top;
-      y -= 20 * k; text(num.value, x, y, 20 * k, bold, ORANGE); y -= 5 * k;
-      const lab = wrap(num.label.toUpperCase(), bold, 7 * k, gw - 12);
-      for (const l of lab) { y -= 7 * k * 1.4; text(l, x, y, 7 * k, bold, INK); }
-      for (const l of wrap(num.body, reg, 8 * k, gw - 12)) { y -= 8 * k * 1.35; text(l, x, y, 8 * k, reg, MUTED); }
-      low = Math.min(low, y);
+    const pad = 18 * k, titleS = 24 * k, colGap = 18 * k, n = b.numbers.length;
+    const cw = (CW - 2 * pad - colGap * (n - 1)) / n;
+    const valS = 42 * k, labS = 6.5 * k, bodyS = 7.4 * k, stag = 14 * k;
+    const cols = b.numbers.map((num, i) => {
+      const lab = wrap(String(num.label).toUpperCase(), monoB, labS, cw);
+      const body = wrap(num.body, mono, bodyS, cw);
+      const hh = (num.score ? 15 * k + 11 * k : 0) + valS * 0.92 + 8 * k + lab.length * lh(labS, 1.45) + 3 * k + body.length * lh(bodyS, 1.5);
+      return { num, lab, body, off: i * stag, hh };
     });
-    y = low;
+    const h = pad + titleS * 0.9 + 14 * k + Math.max(...cols.map((c) => c.off + c.hh)) + pad;
+    rect(M, y, CW, h, C.black);
+    const tA = "THE THREE NUMBERS ", tB = "THAT MATTER";
+    text(tA, M + pad, y - pad - titleS * 0.75, titleS, lg, C.white);
+    text(tB, M + pad + lg.widthOfTextAtSize(tA, titleS), y - pad - titleS * 0.75, titleS, lg, C.dim);
+    const top0 = y - pad - titleS * 0.9 - 14 * k;
+    cols.forEach((c, i) => {
+      const x = M + pad + i * (cw + colGap);
+      let yy = top0 - c.off;
+      if (c.num.score) {
+        const segs = 20, g = 2 * k, sw = (cw - g * (segs - 1)) / segs, on = Math.max(1, Math.round(c.num.score.fill * segs));
+        for (let s = 0; s < segs; s++) round(x + s * (sw + g), yy, sw, 15 * k, Math.min(2.2 * k, sw / 2), { color: s < on ? BAR[c.num.score.rag] : C.seg });
+        yy -= 15 * k + 7 * k;
+        text("WEAK", x, yy, 5 * k, mono, C.dim, { characterSpacing: 0.6 * k });
+        text("STRONG", x + cw - mono.widthOfTextAtSize("STRONG", 5 * k) - 6 * 0.6 * k, yy, 5 * k, mono, C.dim, { characterSpacing: 0.6 * k });
+        yy -= 4 * k;
+      }
+      const [big, unit] = splitUnit(c.num.value);
+      yy -= valS * 0.78;
+      text(big, x, yy, valS, lg, C.white);
+      if (unit) text(unit, x + lg.widthOfTextAtSize(big, valS) + 2 * k, yy, valS * 0.42, lg, hex("#cfcac6"));
+      yy -= valS * 0.14 + 8 * k;
+      for (const l of c.lab) { yy -= labS * 1.1; text(l, x, yy, labS, monoB, C.lighter, { characterSpacing: 0.3 * k }); yy -= labS * 0.35; }
+      yy -= 3 * k;
+      for (const l of c.body) { yy -= bodyS * 1.15; text(l, x, yy, bodyS, mono, C.light); yy -= bodyS * 0.35; }
+    });
+    y -= h + GAP;
   }
 
-  // Red flags
+  // card shell + heading for the white sections
+  const card = (h, title, small) => {
+    rect(M, y, CW, h, C.panel, { borderColor: C.rule, borderWidth: 0.6 });
+    const ts2 = 19 * k;
+    text(title, M + 16 * k, y - 14 * k - ts2 * 0.75, ts2, lg, C.ink);
+    if (small) text(small, M + 16 * k + lg.widthOfTextAtSize(title, ts2) + 8 * k, y - 14 * k - ts2 * 0.75 + 1, 5.8 * k, mono, C.muted, { characterSpacing: 0.9 * k });
+    return y - 14 * k - ts2 * 0.9 - 9 * k;
+  };
+
+  // ---- red flags ----
   if (b.flags.length) {
-    heading("Red flags: potential blockers");
-    for (const f of b.flags) {
-      y -= 2;
-      text("×", M, y - 9 * k, 10 * k, bold, RAG.red);
-      const line = (f.title ? f.title + ". " : "") + f.body + (f.check ? " Check: " + f.check : "");
-      const ls = wrap(line, reg, 8.5 * k, CW - 14);
-      ls.forEach((l, i) => { y -= 8.5 * k * 1.35; if (i === 0 && f.title) { const t = safe(f.title + ". "); text(t, M + 14, y, 8.5 * k, bold, INK); text(l.slice(t.length), M + 14 + bold.widthOfTextAtSize(t, 8.5 * k) + 2.5, y, 8.5 * k, reg, INK); } else text(l, M + 14, y, 8.5 * k, reg, INK); });
+    const pad = 16 * k, iw = CW - 2 * pad, tx = 32 * k, tw = iw - tx - 10 * k, tS = 8 * k, bS = 7.4 * k, cS = 6.8 * k;
+    const rows = b.flags.map((f) => {
+      const body = wrap(f.body, mono, bS, tw);
+      const check = f.check ? wrap(f.check, mono, cS, tw - 34 * k) : [];
+      const hh = 8 * k + (f.title ? lh(tS, 1.35) : 0) + body.length * lh(bS, 1.45) + (check.length ? 4 * k + check.length * lh(cS, 1.45) : 0) + 7 * k;
+      return { f, body, check, hh };
+    });
+    const h = 14 * k + 19 * k * 0.9 + 9 * k + rows.reduce((a, r) => a + r.hh + 5 * k, 0) + pad - 5 * k;
+    let yy = card(h, "RED FLAGS", "POTENTIAL BLOCKERS");
+    for (const r of rows) {
+      const red = RAG.red;
+      rect(M + pad, yy, iw, r.hh, mix(C.white, red, 0.04), { borderColor: mix(C.rule, red, 0.3), borderWidth: 0.6 });
+      rect(M + pad, yy, 3.5 * k, r.hh, red);
+      const d = 17 * k, cx = M + pad + 8 * k + d / 2 + 2 * k, cy = yy - 8 * k - d / 2 + 2 * k;
+      P((p) => p.drawCircle({ x: cx, y: cy, size: d / 2, color: red }));
+      icon("x", cx, cy, d * 0.55, C.white, 3.4);
+      let ty = yy - 8 * k;
+      if (r.f.title) { ty -= tS * 1.05; text(r.f.title, M + pad + tx, ty, tS, monoB, C.ink); ty -= tS * 0.3; }
+      for (const l of r.body) { ty -= bS * 1.15; text(l, M + pad + tx, ty, bS, mono, C.ink); ty -= bS * 0.3; }
+      if (r.check.length) {
+        ty -= 4 * k;
+        const tagW = mono.widthOfTextAtSize("CHECK", 5.2 * k) + 3.2 * k + 8 * k;
+        r.check.forEach((l, i) => {
+          ty -= cS * 1.15;
+          if (i === 0) { round(M + pad + tx, ty + cS * 0.95, tagW, cS * 1.45, 1.8 * k, { borderColor: C.muted, borderWidth: 0.5 }); text("CHECK", M + pad + tx + 4 * k, ty + 0.6 * k, 5.2 * k, mono, C.muted, { characterSpacing: 0.8 * k }); }
+          text(l, M + pad + tx + tagW + 6 * k, ty, cS, mono, C.muted);
+          ty -= cS * 0.3;
+        });
+      }
+      yy -= r.hh + 5 * k;
     }
+    y -= h + GAP;
   }
 
-  // Questions + data room side by side
-  if (b.questions.length || b.dataroom.length) {
-    heading("Questions for the broker  ·  Data room request");
-    const top = y, half = (CW - 16) / 2;
-    b.questions.forEach((q, i) => {
-      const ls = wrap(q, reg, 8.5 * k, half - 16);
-      ls.forEach((l, j) => { y -= 8.5 * k * 1.35; if (j === 0) text(`${i + 1}.`, M, y, 8.5 * k, bold, ORANGE); text(l, M + 14, y, 8.5 * k, reg, INK); });
-      y -= 2;
+  // ---- questions for the broker (question cards) ----
+  if (b.questions.length) {
+    const pad = 16 * k, iw = CW - 2 * pad, cg = 12 * k, cw = (iw - cg) / 2, qS = 7.4 * k, inL = 40 * k;
+    const cards = b.questions.map((q) => ({ q, lines: wrap(q, mono, qS, cw - inL - 10 * k) }));
+    const cardH = (c) => 13 * k + 14 * k * 0.85 + 4 * k + c.lines.length * lh(qS, 1.45) + 10 * k;
+    const rowsH = [];
+    for (let i = 0; i < cards.length; i += 2) rowsH.push(Math.max(cardH(cards[i]), cards[i + 1] ? cardH(cards[i + 1]) : 0));
+    const rowGap = 16 * k;
+    const h = 14 * k + 19 * k * 0.9 + 9 * k + 10 * k + rowsH.reduce((a, r) => a + r + rowGap, 0) - rowGap + pad;
+    let yy = card(h, "QUESTIONS FOR THE BROKER") - 10 * k;
+    rowsH.forEach((rh, ri) => {
+      [cards[ri * 2], cards[ri * 2 + 1]].forEach((c, j) => {
+        if (!c) return;
+        const x = M + pad + j * (cw + cg), idx = ri * 2 + j + 1;
+        round(x, yy, cw, rh, 10 * k, { borderColor: C.orange, borderWidth: 2.4 * k });
+        const qs = 36 * k, qw = lg.widthOfTextAtSize("?", qs);
+        rect(x + 9 * k, yy + 3 * k, qw + 6 * k, 8 * k, C.panel);
+        text("?", x + 12 * k, yy - qs * 0.62, qs, lg, C.orange);
+        let ty = yy - 13 * k - 14 * k * 0.72;
+        text(`QUESTION ${idx}`, x + inL, ty, 14 * k, lg, C.orange);
+        ty -= 14 * k * 0.13 + 4 * k;
+        for (const l of c.lines) { ty -= qS * 1.15; text(l, x + inL, ty, qS, mono, C.ink); ty -= qS * 0.3; }
+      });
+      yy -= rh + rowGap;
     });
-    const qLow = y;
-    y = top;
-    b.dataroom.forEach((dr) => {
-      const ls = wrap(dr, reg, 8.5 * k, half - 14);
-      ls.forEach((l, j) => { y -= 8.5 * k * 1.35; if (j === 0) text("•", M + half + 16, y, 8.5 * k, bold, ORANGE); text(l, M + half + 28, y, 8.5 * k, reg, INK); });
-      y -= 2;
-    });
-    y = Math.min(qLow, y);
+    y -= h + GAP;
   }
 
-  // What would change my mind
+  // ---- data room request (checklist) ----
+  if (b.dataroom.length) {
+    const pad = 16 * k, iw = CW - 2 * pad, cg = 18 * k, cw = (iw - cg) / 2, dS = 7.4 * k;
+    const items = b.dataroom.map((d) => wrap(d, mono, dS, cw - 18 * k));
+    const rowsH = [];
+    for (let i = 0; i < items.length; i += 2) rowsH.push(Math.max(items[i].length, items[i + 1] ? items[i + 1].length : 0) * lh(dS, 1.45) + 11 * k);
+    const h = 14 * k + 19 * k * 0.9 + 9 * k + rowsH.reduce((a, r) => a + r, 0) + pad - 6 * k;
+    let yy = card(h, "DATA ROOM REQUEST");
+    rowsH.forEach((rh, ri) => {
+      [items[ri * 2], items[ri * 2 + 1]].forEach((lines, j) => {
+        if (!lines) return;
+        const x = M + pad + j * (cw + cg);
+        icon("doc", x + 5 * k, yy - 5 * k - dS * 0.55, 10 * k, C.orange, 2.2);
+        let ty = yy - 5 * k;
+        for (const l of lines) { ty -= dS * 1.15; text(l, x + 16 * k, ty, dS, mono, C.ink); ty -= dS * 0.3; }
+        P((p) => p.drawLine({ start: { x, y: yy - rh + 1 }, end: { x: x + cw, y: yy - rh + 1 }, thickness: 0.5, color: C.rule }));
+      });
+      yy -= rh;
+    });
+    y -= h + GAP;
+  }
+
+  // ---- what would change my mind (orange callout) ----
   if (b.mind) {
-    heading("What would change my mind");
-    para(b.mind, M, CW, 9 * k);
+    const pad = 14 * k, d = 26 * k, tx = pad + d + 12 * k, mS = 8.4 * k;
+    const lines = wrap(b.mind, mono, mS, CW - tx - pad);
+    const h = pad + 18 * k * 0.9 + 6 * k + lines.length * lh(mS, 1.5) + pad - 2 * k;
+    rect(M, y, CW, h, C.orangeTint, { borderColor: C.orange, borderWidth: 0.8 });
+    const cx = M + pad + d / 2, cy = y - pad - d / 2;
+    P((p) => p.drawCircle({ x: cx, y: cy, size: d / 2, color: C.orange }));
+    icon("bulb", cx, cy, d * 0.6, C.white, 2.2);
+    text("WHAT WOULD CHANGE MY MIND", M + tx, y - pad - 18 * k * 0.75, 18 * k, lg, C.ink);
+    let ty = y - pad - 18 * k * 0.9 - 6 * k;
+    for (const l of lines) { ty -= mS * 1.15; text(l, M + tx, ty, mS, mono, C.ink); ty -= mS * 0.35; }
+    y -= h + GAP;
   }
 
-  // Footer
-  const foot = "Prepared with 5D Deal Screen. Every number is calculated from the inputs given. A first pass for your team to check, not advice.";
-  page.drawLine({ start: { x: M, y: M + 6 }, end: { x: W - M, y: M + 6 }, thickness: 0.5, color: RULE });
-  text(foot, M, M - 6, 7, reg, MUTED);
+  // ---- footer ----
+  const logoH = 11, logoW = (ctx.logo.width / ctx.logo.height) * logoH;
+  P((p) => p.drawImage(ctx.logo, { x: W - M - logoW, y: 14, width: logoW, height: logoH }));
+  text("Prepared with Fifth Dimension Deal Screen. Every number is calculated from the inputs given.", M, 22, 5.8, mono, C.muted);
+  text("A first pass for your team to check, not advice.", M, 14, 5.8, mono, C.muted);
 
-  if (!fits()) return null;
-  return doc.save();
+  return y >= FOOT;
 }

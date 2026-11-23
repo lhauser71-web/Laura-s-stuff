@@ -5,6 +5,7 @@ import { md } from "./lib/markdown.js";
 import { askEllie, fileToImage } from "./lib/ellie.js";
 import { SAMPLE_BRIEFS } from "./sampleBriefs.js";
 import Report from "./Report.jsx";
+import { scoreMetric } from "./lib/score.js";
 
 const AI_IDLE = "Ellie Jr. reads the numbers above plus your notes, then writes what a good senior analyst would put in front of IC.";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -356,21 +357,7 @@ export default function DealScreen() {
     ["Equity cheque", money(M.equity, D.ccy), "incl. capex " + money(D.capex || 0, D.ccy), ""],
   ] : ["Going-in cap", "Price / unit", "DSCR", "Debt yield", "Leverage spread", "Breakeven occupancy", "Exit vs entry cap", "Levered IRR", "Equity cheque"].map((k) => [k, "—", "", "empty"]);
 
-  // Strength of a headline metric for the report's bars: fill on a fixed weak→strong scale, RAG on the grid's thresholds.
-  const clamp = (x) => Math.min(1, Math.max(0, x));
-  function score(label) {
-    if (!M) return null;
-    const l = String(label).toLowerCase();
-    const rag = (v, g, a, lowerBetter) => lowerBetter ? (v <= g ? "green" : v <= a ? "amber" : "red") : (v >= g ? "green" : v >= a ? "amber" : "red");
-    if (/irr/.test(l) && isFinite(M.irr)) return { fill: clamp((M.irr + 0.1) / 0.35), rag: rag(M.irr, 0.15, 0.1) };
-    if (/leverage spread|spread/.test(l)) return { fill: clamp((M.spread + 0.03) / 0.06), rag: rag(M.spread, 0.005, 0) };
-    if (/dscr/.test(l)) return isFinite(M.dscr) ? { fill: clamp((M.dscr - 0.8) / 1.2), rag: rag(M.dscr, 1.35, 1.2) } : { fill: 1, rag: "green" };
-    if (/exit cap/.test(l)) return { fill: clamp((M.exitSpread + 0.005) / 0.015), rag: rag(M.exitSpread, 0.0025, 0) };
-    if (/debt yield/.test(l) && isFinite(M.dy)) return { fill: clamp((M.dy - 0.05) / 0.1), rag: rag(M.dy, 0.09, 0.075) };
-    if (/multiple/.test(l)) return { fill: clamp((M.em - 0.5) / 1.5), rag: rag(M.em, 1.6, 1.3) };
-    if (/breakeven/.test(l)) return { fill: clamp((1 - M.beo) / 0.4), rag: rag(M.beo, 0.8, 0.88, true) };
-    return null;
-  }
+  const score = (label) => scoreMetric(label, M);
 
   const caps = M ? [-0.25, 0, 0.25, 0.5, 0.75].map((x) => D.exitcap + x) : [];
   const gs = M ? [D.growth - 2, D.growth, D.growth + 2] : [];

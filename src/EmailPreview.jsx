@@ -49,7 +49,7 @@ const responsiveCss = `
 export default function EmailPreview({ data = SAMPLE_EMAIL }) {
   const e = data;
   useEffect(() => {
-    document.title = `Ellie Jr.'s first pass on ${e.dealName}`;
+    document.title = `Fifth Dimension Deal Screen: ${e.dealName.split(" · ")[0]}`;
     const prev = document.body.style.background;
     document.body.style.background = "#e2e2e2";
     return () => { document.body.style.background = prev; };
@@ -59,7 +59,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
     <div className="email-root" style={{ margin: 0, padding: 0, background: "#e2e2e2" }}>
       <style>{responsiveCss}</style>
       <div style={{ background: "#201d1d", color: "#fff", fontFamily: "Menlo,monospace", fontSize: 12, padding: "10px 16px", textAlign: "center" }}>
-        Preview with sample values (Austin example). Subject: <strong>Ellie Jr.'s first pass on The Mercer</strong> · Attachment: IC-first-pass.pdf
+        Preview with sample values (Austin example). Subject: <strong>Fifth Dimension Deal Screen: The Mercer</strong> · Attachment: IC-first-pass.pdf
       </div>
       <div style={{ display: "none", maxHeight: 0, overflow: "hidden", opacity: 0 }}>
         Your one-page IC first pass is attached. Verdict: {e.verdict}.
