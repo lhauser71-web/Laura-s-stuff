@@ -420,7 +420,7 @@ export default function DealScreen() {
     setMailStatus("Emailing a copy to " + email + "…");
     try {
       const r = await fetch("/api/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email, vals, example, text, company: lTrap }) });
-      if (r.ok) { setMailStatus("A copy of this analysis, with a PDF, is on its way to " + email + "."); return; }
+      if (r.ok) { setMailStatus("A copy of this analysis is on its way to " + email + "."); return; }
       const j = await r.json().catch(() => ({}));
       setMailStatus(j.code === "rate_limited" ? "We've sent a few copies already, so this one wasn't emailed. Try again later." : "We couldn't email a copy just now, but your analysis is below.");
     } catch {
