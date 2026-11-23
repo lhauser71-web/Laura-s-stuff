@@ -196,7 +196,7 @@ export default function DealScreen() {
     if (fileRef.current) fileRef.current.value = "";
     setFileName("");
     setInputsOpen(true);
-    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin. Pick a different sample deal below, or scroll down for the numbers.");
+    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin. Pick a different sample deal below, or scroll down for the deal snapshot.");
     // Stay here so the user can choose a sample deal; bring the picker into view instead of jumping to the numbers.
     setTimeout(() => { const el = sampleRef.current; if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.focus({ preventScroll: true }); } }, 60);
   }
@@ -567,7 +567,7 @@ export default function DealScreen() {
             <div className="step-n" aria-hidden="true">02</div>
             <div className={"card step" + (M ? "" : " locked")} ref={numbersRef}>
               <div className="locked-body" {...(M ? {} : { inert: "", "aria-hidden": "true" })}>
-                <h2>See the numbers{D.name ? <small>{D.name}</small> : null}</h2>
+                <h2>Deal snapshot{D.name ? <small>{D.name}</small> : null}</h2>
                 <div className="metrics">
                   {tiles.map(([k, v, n, cls]) => (
                     <div className={"metric " + cls} key={k}><span className="k">{k}</span><span className="v">{v}</span><span className="n">{n}</span></div>
