@@ -192,3 +192,13 @@ header.top .mark-top{height:40px;opacity:.6}
 @media (max-width:640px){.ellie-card.locked{max-height:440px}.lock-badge{white-space:normal;text-align:center;max-width:88%;font-size:10.5px;padding:7px 12px}}
 .upload-row button.ghost.manual-btn.on{box-shadow:inset 0 0 0 2px var(--ink);color:#fff}
 @media (max-width:640px){.upload-row{flex-direction:column;align-items:stretch;gap:6px}.upload-row .or{text-align:center}.upload-row label.upload,.upload-row button.ghost{justify-content:center;text-align:center}}
+
+/* Button styling (matches the site's Login / Request a demo buttons) */
+button.primary,a.btn-primary,button.ghost,label.upload,.upload-row label.upload,.upload-row button.ghost{border-radius:4px;font-family:var(--body);font-weight:500;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:12px 24px;line-height:1.2;box-shadow:none;filter:none;transition:background .15s,color .15s,border-color .15s}
+button.primary,a.btn-primary,.upload-row label.upload{background:#e15e29;border:2px solid #e15e29;color:#fff}
+button.primary:hover,a.btn-primary:hover,.upload-row label.upload:hover{background:#cc5221;border-color:#cc5221;filter:none}
+button.ghost,.upload-row button.ghost{background:transparent;border:2px solid #221f20;color:#221f20}
+button.ghost:hover,.upload-row button.ghost:hover{background:#221f20;color:#fff;filter:none}
+.upload-row button.ghost.manual-btn.on{background:#221f20;color:#fff;box-shadow:none}
+button.primary[disabled]{opacity:.45}
+.upload-row{gap:10px}

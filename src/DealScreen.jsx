@@ -313,9 +313,7 @@ export default function DealScreen() {
                   <input type="file" ref={fileRef} accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
                     onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) fillFromTeaser({ file: f }); fileRef.current.value = ""; }} />
                 </label>
-                <span className="or">or</span>
                 <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
-                <span className="or">or</span>
                 <button type="button" className={"ghost manual-btn" + (inputsOpen ? " on" : "")} aria-expanded={inputsOpen} aria-controls="deal-inputs" onClick={() => setInputsOpen((o) => !o)}>Enter deal info manually</button>
                 {fileName && <span className="file-name">{fileName}</span>}
               </div>
