@@ -327,3 +327,5 @@ button.primary[disabled]{opacity:.45}
 @media (max-width:560px){.rp-bar-top .rp-actions{width:100%}.rp-bar-top .rp-actions > *{flex:1 1 auto;text-align:center}}
 .rp-kpi,.rp-kpi.good,.rp-kpi.warn,.rp-kpi.bad{border-top-color:#e15e29}
 .rp-why{max-width:none}
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
+.rp-mail{margin-top:10px;color:var(--ink)}

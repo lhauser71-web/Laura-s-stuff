@@ -71,6 +71,8 @@ export default function DealScreen() {
   const [lEmail, setLEmail] = useState("");
   const [lStatus, setLStatus] = useState("");
   const [lBusy, setLBusy] = useState(false);
+  const [lTrap, setLTrap] = useState(""); // honeypot: hidden from people, bots fill it in
+  const [mailStatus, setMailStatus] = useState("");
 
   const nameRef = useRef(null);
   const aiRef = useRef(null);
@@ -323,8 +325,22 @@ export default function DealScreen() {
     setLStatus("");
     // Go straight to Ellie's results on their own screen.
     openResults();
-    await runAI(true);
+    const out = await runAI(true);
+    if (out) emailCopy(name, email, out);
     setLBusy(false);
+  }
+
+  // Email the follow-up (with the one-page PDF) from the server; figures are recalculated there.
+  async function emailCopy(name, email, text) {
+    setMailStatus("Emailing a copy to " + email + "…");
+    try {
+      const r = await fetch("/api/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email, vals, example, text, company: lTrap }) });
+      if (r.ok) { setMailStatus("A copy of this analysis, with a one-page PDF, is on its way to " + email + "."); return; }
+      const j = await r.json().catch(() => ({}));
+      setMailStatus(j.code === "rate_limited" ? "We've sent a few copies already, so this one wasn't emailed. Try again later." : "We couldn't email a copy just now, but your analysis is below.");
+    } catch {
+      setMailStatus("We couldn't email a copy just now, but your analysis is below.");
+    }
   }
 
   // ---------- render helpers ----------
@@ -391,6 +407,7 @@ export default function DealScreen() {
               )}
             </section>
 
+            {mailStatus && <p className="rp-status rp-mail">{mailStatus}</p>}
             {!running && aiStatus && aiStatus !== AI_IDLE && <p className="rp-status">{aiStatus}</p>}
 
             <Report text={aiText} running={running} score={score} />
@@ -523,6 +540,7 @@ export default function DealScreen() {
                   <div className="fields two">
                     <label>Name<input ref={nameRef} required value={lName} onChange={(e) => setLName(e.target.value)} /></label>
                     <label>Work email<input type="email" required value={lEmail} onChange={(e) => setLEmail(e.target.value)} /></label>
+                    <label className="hp" aria-hidden="true">Company<input tabIndex={-1} autoComplete="off" value={lTrap} onChange={(e) => setLTrap(e.target.value)} /></label>
                   </div>
                   <div className="row" style={{ marginTop: 14 }}>
                     <button type="submit" className="primary" disabled={lBusy || !M}>Get Ellie Jr.'s first pass</button>
