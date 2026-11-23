@@ -127,9 +127,9 @@ function layout(ctx, b, k, dry) {
   // ---- verdict ----
   {
     const rag = b.verdictRag || "amber", rc = RAG[rag];
-    const pad = 14 * k, d = 30 * k, labS = 34 * k, whyS = 9 * k;
+    const pad = 14 * k, d = 30 * k, labS = 30 * k, whyS = 9 * k;
     const whyLines = wrap(b.verdictReason, mono, whyS, CW - 2 * pad - 8 * k);
-    const rowH = Math.max(d, lh(6 * k) + labS * 0.9);
+    const rowH = Math.max(d, labS * 0.9);
     const h = pad + rowH + 10 * k + whyLines.length * lh(whyS, 1.5) + pad - 4 * k;
     rect(M, y, CW, h, mix(C.white, rc, 0.07), { borderColor: mix(C.rule, rc, 0.35), borderWidth: 0.6 });
     rect(M, y, 7 * k, h, rc);
@@ -137,8 +137,10 @@ function layout(ctx, b, k, dry) {
     P((p) => p.drawCircle({ x: cx, y: cy, size: d / 2, color: rc }));
     icon(rag === "green" ? "check" : rag === "red" ? "x" : "bang", cx, cy, d * 0.55, C.white, 3);
     const tx = M + 7 * k + pad + d + 12 * k;
-    text("ELLIE JR.'S VERDICT", tx, y - pad - 6 * k, 6 * k, mono, C.muted, { characterSpacing: 0.9 * k });
-    text(String(b.verdict).toUpperCase(), tx, y - pad - lh(6 * k) - labS * 0.78, labS, lg, rc);
+    // One line: "ELLIE JR.'S VERDICT: PASS", the verdict in its RAG colour.
+    const lead = "ELLIE JR.'S VERDICT: ", base = cy - labS * 0.3;
+    text(lead, tx, base, labS, lg, C.ink);
+    text(String(b.verdict).toUpperCase(), tx + lg.widthOfTextAtSize(lead, labS), base, labS, lg, rc);
     let yy = y - pad - rowH - 10 * k;
     for (const l of whyLines) { yy -= whyS * 1.15; text(l, M + 7 * k + pad, yy, whyS, mono, C.ink); yy -= whyS * 0.35; }
     y -= h + GAP;
