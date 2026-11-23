@@ -514,7 +514,7 @@ export default function DealScreen() {
                 onPaste={(e) => { const p = e.clipboardData.getData("text"); if (!p.trim()) return; const el = e.currentTarget; const next = el.value.slice(0, el.selectionStart) + p + el.value.slice(el.selectionEnd); fillFromTeaser({ text: next }); }} />
               <div className="row upload-row">
                 <label className="upload">Upload document/brochure
-                  <input type="file" ref={fileRef} accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
+                  <input type="file" title="" ref={fileRef} accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
                     onChange={() => { const f = fileRef.current.files[0]; setFileName(f ? f.name : ""); if (f) fillFromTeaser({ file: f }); fileRef.current.value = ""; }} />
                 </label>
                 <button type="button" className="ghost" onClick={loadSample}>Use sample data</button>
