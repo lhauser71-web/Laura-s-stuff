@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { EXAMPLES, EXAMPLE_OPTIONS, FIELDS, NUMERIC, ASSETS, CCYS, UNITS, SOLO_URL } from "./data.js";
 import { calc, model, money, pct, bps, sym, perUnit, facts } from "./lib/finance.js";
-import { md, verdictOf } from "./lib/markdown.js";
+import { md } from "./lib/markdown.js";
 import { askEllie, fileToImage } from "./lib/ellie.js";
 
 const AI_IDLE = "Ellie reads the numbers above plus your notes, then writes what a good senior analyst would put in front of IC.";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const FREE_MAIL = /@(gmail|googlemail|yahoo|hotmail|outlook|live|icloud|me|aol|proton|protonmail)\./i;
 
 function LockIcon() {
   return (
@@ -69,7 +68,6 @@ export default function DealScreen() {
   const [lEmail, setLEmail] = useState("");
   const [lStatus, setLStatus] = useState("");
   const [lBusy, setLBusy] = useState(false);
-  const [leadResult, setLeadResult] = useState(null);
 
   const nameRef = useRef(null);
   const aiRef = useRef(null);
@@ -267,10 +265,10 @@ export default function DealScreen() {
     if (!name || !EMAIL_RE.test(email)) { setLStatus("Add your name and a work email."); return; }
     setLeadDone(true);
     setLBusy(true);
-    setLStatus("Ellie is on it…");
-    const out = await runAI(true);
-    setLeadResult({ name, email, text: out || "", ran: !!out, D, M });
-    setLStatus("Demo mode: in production this goes straight to HubSpot.");
+    setLStatus("");
+    // Go straight to Ellie's results.
+    setTimeout(() => aiRef.current && aiRef.current.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+    await runAI(true);
     setLBusy(false);
   }
 
@@ -442,15 +440,6 @@ export default function DealScreen() {
             </div>
             </div>
 
-            {leadResult && (
-              <div className="step-row">
-              <div className="step-n spacer" aria-hidden="true" />
-              <div className="card step">
-                {lStatus && <p className="hint" style={{ marginTop: 0 }}>{lStatus}</p>}
-                <LeadResult r={leadResult} />
-              </div>
-              </div>
-            )}
           </div>
 
           <div className="foot-logo"><img src="/logo-ink.webp" alt="Fifth Dimension" height="20" /></div>
@@ -484,76 +473,5 @@ export default function DealScreen() {
         </dialog>
       </main>
     </>
-  );
-}
-
-function LeadResult({ r }) {
-  const { D, M } = r;
-  const first = r.name.split(" ")[0];
-  const dn = D.name || "your deal";
-  const verdict = verdictOf(r.text);
-  const today = new Date().toISOString().slice(0, 10);
-  const dom = (r.email.split("@")[1] || "").toLowerCase();
-  const freeMail = FREE_MAIL.test(r.email);
-  const utm = new URLSearchParams(window.location.search);
-  const props = [
-    ["email", r.email],
-    ["firstname / lastname", r.name],
-    ["company domain", dom + (freeMail ? " (personal address: verify firm)" : "")],
-    ["company, AUM band, region, job title", "Filled in by enrichment from the email domain"],
-    ["lifecyclestage", "lead, then MQL once fit is confirmed"],
-    ["lead_source", "Deal Screen"],
-    ["mql_trigger", "screen_run"],
-    ["deal_screened", (D.asset || "") + " · " + (D.market || "") + (verdict ? " · verdict: " + verdict : "")],
-    ["utm_source / utm_campaign", (utm.get("utm_source") || "direct") + " / " + (utm.get("utm_campaign") || "none")],
-  ];
-  const flow = ["Send email: PDF first pass + Solo offer, three months free", "Enrich firm, AUM, region and title from the email domain", "Score fit and route the lead"];
-
-  return (
-    <div className="result">
-      {r.ran ? (
-        <>
-          <p style={{ margin: "0 0 4px" }}><strong>Thanks, {first}. Your first pass is above, and a PDF copy is on its way to {r.email}.</strong></p>
-          <details open>
-            <summary>Preview: the email they receive <span className="tag">mock</span></summary>
-            <div className="mock">
-              <div className="hint">From: Fifth Dimension · Subject: Ellie's first pass on {dn}<br />Attached: IC-first-pass.pdf</div>
-              <p>Hi {first},</p>
-              <p>Ellie's first pass on {dn} is attached as a one-page PDF. Verdict: <strong>{verdict || "see the brief"}</strong>. Every number is calculated from your inputs, and you can rerun the screen any time from the link.</p>
-              <p>Want Ellie to read the actual OM, rent roll and T-12? Upload them securely in Solo, and every figure comes back linked to its page. Your first three months are free.</p>
-            </div>
-          </details>
-          <details open>
-            <summary>Preview: the PDF attached <span className="tag">mock</span></summary>
-            <div className="pdf">
-              <div className="bar"><div>Fifth Dimension · <span>IC first pass</span></div><small>{today}</small></div>
-              <p className="deal">{dn}</p>
-              <div className="hint">{D.asset + " · " + (D.market || "") + " · " + money(D.price, D.ccy)}</div>
-              {M && (
-                <div className="kpis">
-                  <div>Going-in cap<b>{pct(M.cap, 2)}</b></div>
-                  <div>DSCR<b>{isFinite(M.dscr) ? M.dscr.toFixed(2) + "x" : "n/a"}</b></div>
-                  <div>Debt yield<b>{pct(M.dy, 1)}</b></div>
-                  <div>Levered IRR<b>{isFinite(M.irr) ? pct(M.irr, 1) : "n/m"}</b></div>
-                </div>
-              )}
-              <div dangerouslySetInnerHTML={{ __html: md(r.text) }} />
-              <div className="foot">Prepared with 5D Deal Screen. Metrics are arithmetic on the inputs given; the note is an AI-generated first pass to check, not advice.</div>
-            </div>
-          </details>
-        </>
-      ) : (
-        <p style={{ margin: "0 0 4px" }}><strong>Thanks, {first}. We have your details.</strong> The first pass couldn't run just now, so nothing has been emailed yet. Click Run Ellie's first pass above to try again.</p>
-      )}
-      <details>
-        <summary>What HubSpot records <span className="tag">connected later</span></summary>
-        <div className="mock">
-          <table className="hs"><tbody>
-            {props.map(([k, v]) => <tr key={k}><th>{k}</th><td>{String(v)}</td></tr>)}
-          </tbody></table>
-          <p className="hint" style={{ marginTop: 8 }}><strong>Routing after enrichment:</strong> MQL if the firm has $1-10bn AUM in the US, UK or Singapore and the contact sits on the buying committee (AE call within 24-48h); otherwise enterprise review, nurture or Solo. Workflow: {flow.join(" → ")}</p>
-        </div>
-      </details>
-    </div>
   );
 }
