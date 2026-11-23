@@ -448,7 +448,7 @@ export default function DealScreen() {
                     <button type="submit" className="primary" disabled={lBusy || !M}>Get Ellie's first pass</button>
                     {lStatus && <span className="status">{lStatus}</span>}
                   </div>
-                  <p className="hint" style={{ margin: "10px 0 0" }}>We'll use these details to send your brief and to follow up about Fifth Dimension. Unsubscribe any time.</p>
+                  <p className="hint" style={{ margin: "10px 0 0" }}>We'll send you a copy of the brief. Unsubscribe at any time.</p>
                 </form>
               )}
 
