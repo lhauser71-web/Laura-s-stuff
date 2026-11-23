@@ -480,7 +480,7 @@ export default function DealScreen() {
               <img className="ellie lg" src="/ellie.webp" alt="Ellie" width="72" height="72" />
               <h2 id="solo-title" style={{ margin: 0 }}>Want Ellie to analyze actual documents?</h2>
             </div>
-            <p>In Solo, Ellie reads the whole package (the OM, the rent roll, the T-12, the loan docs), checks one against another the way a senior associate would, and links every figure back to the clause, cell or page it came from.</p>
+            <p>Ellie reads the whole package (the OM, the rent roll, the T-12, the loan docs), cross checks the documents and provides an accurate, in depth analysis.</p>
             <table className="cmp">
               <thead><tr><th></th><th>Deal Screen</th><th>Solo</th></tr></thead>
               <tbody>
