@@ -39,6 +39,7 @@ export default function DealScreen() {
   const [inputsOpen, setInputsOpen] = useState(false);
   const [screen, setScreen] = useState("deal"); // "deal" = steps 1-2, "ellie" = step 3
   const staleRef = useRef(false);
+  const pushedRef = useRef(false);
   const numbersRef = useRef(null);
   const [tags, setTags] = useState({});
 
@@ -74,15 +75,15 @@ export default function DealScreen() {
   useEffect(() => {
     const onFirstPass = () => window.location.pathname.replace(/\/+$/, "") === "/first-pass";
     // A fresh load of /first-pass has no deal in memory, so start from the home screen.
-    if (onFirstPass()) window.history.replaceState(null, "", "/" + window.location.search);
-    const onPop = () => { setScreen(onFirstPass() ? "ellie" : "deal"); window.scrollTo(0, 0); };
+    if (onFirstPass()) { try { window.history.replaceState(null, "", "/" + window.location.search); } catch {} }
+    const onPop = () => { pushedRef.current = onFirstPass(); setScreen(onFirstPass() ? "ellie" : "deal"); window.scrollTo(0, 0); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   function goToEllie() {
     if (!M) return;
-    window.history.pushState(null, "", "/first-pass" + window.location.search);
+    try { window.history.pushState(null, "", "/first-pass" + window.location.search); pushedRef.current = true; } catch { pushedRef.current = false; }
     setScreen("ellie");
     window.scrollTo(0, 0);
     if (leadDone && (!aiRan || staleRef.current)) runAI(true);
@@ -90,7 +91,9 @@ export default function DealScreen() {
   }
 
   function backToDeal() {
-    window.history.back();
+    if (pushedRef.current) { pushedRef.current = false; try { window.history.back(); return; } catch {} }
+    setScreen("deal");
+    window.scrollTo(0, 0);
   }
 
   // ---------- form ----------
