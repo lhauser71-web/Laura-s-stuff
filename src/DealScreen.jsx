@@ -607,7 +607,7 @@ export default function DealScreen() {
 
             {/* STEP 3: Ellie's first pass (locked until there's a deal) */}
             <div className="step-row">
-            <div className="step-n" aria-hidden="true">03</div>
+            <div className="step-n" aria-hidden="true">{M ? "03" : "02"}</div>
             <div className={"card step ellie-card" + (M ? "" : " locked")} ref={aiRef}>
               <div className="locked-body" {...(M ? {} : { inert: "", "aria-hidden": "true" })}>
               <div className="ellie-id" style={{ marginBottom: 14 }}>
