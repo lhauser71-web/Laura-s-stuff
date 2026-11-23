@@ -4,6 +4,7 @@ import { calc, model, money, pct, bps, sym, perUnit, facts } from "./lib/finance
 import { md } from "./lib/markdown.js";
 import { askEllie, fileToImage } from "./lib/ellie.js";
 import { SAMPLE_BRIEFS } from "./sampleBriefs.js";
+import { pdfToText } from "./lib/pdfText.js";
 import Report from "./Report.jsx";
 import { scoreMetric } from "./lib/score.js";
 
@@ -184,15 +185,29 @@ export default function DealScreen() {
     if (tzBusy) return;
     const t = file ? "" : text.trim();
     if (!t && !file) return;
-    let image = null;
-    if (file) {
-      try { image = await fileToImage(file); }
-      catch (e) { setTzStatus(e && e.code === "too_big" ? "That file is too large. Try one under 4.5 MB, or paste the text." : "Couldn't open that file. Paste the text instead."); return; }
-    }
+    let image = null, docText = "";
     setTzBusy(true);
     setTzStatus("Ellie Jr. is reading the document…");
+    if (file) {
+      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name || "");
+      try {
+        if (isPdf) {
+          if (file.size > 50 * 1024 * 1024) throw { code: "too_big_pdf" };
+          // Read the text here in the browser; only fall back to sending the file for scanned PDFs with no text.
+          const { text: pt } = await pdfToText(file);
+          if (pt.replace(/--- page \d+ ---/g, "").trim().length > 400) docText = pt;
+          else image = await fileToImage(file);
+        } else image = await fileToImage(file);
+      } catch (e) {
+        setTzBusy(false);
+        setTzStatus(e && e.code === "too_big_pdf" ? "That PDF is over 50 MB. Try a smaller file, or paste the text."
+          : e && e.code === "too_big" ? "That file is over 3 MB. Try a smaller image, a PDF with selectable text, or paste the text."
+          : "Couldn't open that file. Paste the text instead.");
+        return;
+      }
+    }
     try {
-      const res = await askEllie({ task: "extract", text: t, image });
+      const res = await askEllie({ task: "extract", text: docText || t, image: docText ? null : image });
       const m = (res.text || "").match(/\{[\s\S]*\}/);
       if (!m) throw { code: "parse" };
       applyTeaser(JSON.parse(m[0]));

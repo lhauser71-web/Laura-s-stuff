@@ -40,7 +40,7 @@ export async function askEllie(body, { signal, onText } = {}) {
 
 export function fileToImage(file) {
   return new Promise((resolve, reject) => {
-    if (file.size > 4.5 * 1024 * 1024) return reject(Object.assign(new Error("too_big"), { code: "too_big" }));
+    if (file.size > 3.2 * 1024 * 1024) return reject(Object.assign(new Error("too_big"), { code: "too_big" }));
     const r = new FileReader();
     r.onload = () => {
       const [head, data] = String(r.result).split(",");

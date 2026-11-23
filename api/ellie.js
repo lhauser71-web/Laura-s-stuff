@@ -7,6 +7,7 @@ export const config = { runtime: "edge" };
 
 const ASSETS = ["Multifamily", "Industrial / logistics", "Office", "Retail", "Hotel", "Self storage", "Data centre", "Student housing", "Mixed use"];
 const MAX_TEXT = 12000;
+const MAX_DOC_TEXT = 60000; // text read from an uploaded brochure in the browser (~15k tokens at most)
 const IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
 const DOC_TYPES = ["application/pdf"];
 
@@ -100,7 +101,7 @@ export default async function handler(req) {
     content = [{ type: "text", text: firstPassPrompt(facts) }];
     maxTokens = 6000; // covers adaptive thinking plus the ~420-word note
   } else if (body.task === "extract") {
-    const text = String(body.text || "").slice(0, MAX_TEXT).trim();
+    const text = String(body.text || "").slice(0, MAX_DOC_TEXT).trim();
     const img = body.image;
     if (!text && !img) return json(400, { code: "bad_request" });
     content = [];
