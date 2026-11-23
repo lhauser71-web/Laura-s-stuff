@@ -86,6 +86,7 @@ export default function DealScreen() {
   // After sample data or Ellie fills the deal, bring the numbers into view.
   const numbersRef = useRef(null);
   const autoNumbersRef = useRef(false);
+  const sampleRef = useRef(null);
   useEffect(() => {
     if (!autoNumbersRef.current) return;
     autoNumbersRef.current = false;
@@ -112,8 +113,9 @@ export default function DealScreen() {
     if (fileRef.current) fileRef.current.value = "";
     setFileName("");
     setInputsOpen(true);
-    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin.");
-    autoNumbersRef.current = true;
+    setTzStatus("Sample deal loaded: a 312-unit multifamily in Austin. Pick a different sample deal below, or scroll down for the numbers.");
+    // Stay here so the user can choose a sample deal; bring the picker into view instead of jumping to the numbers.
+    setTimeout(() => { const el = sampleRef.current; if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.focus({ preventScroll: true }); } }, 60);
   }
 
   function setField(id, value) {
@@ -322,7 +324,7 @@ export default function DealScreen() {
               <details className="inputs" open={inputsOpen} onToggle={(e) => setInputsOpen(e.currentTarget.open)}>
                 <summary>Enter deal info manually{D.name ? <small>{D.name}</small> : null}</summary>
                 <label className="full" style={{ margin: "12px 0" }}>Load a sample deal
-                  <select value={example} onChange={(e) => loadExample(e.target.value)}>
+                  <select ref={sampleRef} value={example} onChange={(e) => loadExample(e.target.value)}>
                     {EXAMPLE_OPTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
                   </select>
                 </label>
