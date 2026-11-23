@@ -112,7 +112,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
             <table {...tbl}><tbody><tr>
               <td width="84" valign="top"><img src="/ellie.webp" width="72" height="72" alt="Ellie" style={{ display: "block", border: 0, borderRadius: "50%" }} /></td>
               <td valign="top" style={{ paddingLeft: 6 }}>
-                <div style={{ fontFamily: DISPLAY, fontSize: 28, lineHeight: 1.05, textTransform: "uppercase", color: "#201d1d" }}>Want Ellie to analyze actual documents?</div>
+                <div style={{ fontFamily: DISPLAY, fontSize: 28, lineHeight: 1.05, textTransform: "uppercase", color: "#201d1d" }}>Want Ellie to analyze the real deal?</div>
                 <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.6 }}>Upload the whole package (the OM, the rent roll, the T-12, the loan docs), for a more accurate, in depth analysis. Uploaded files are protected and never used to train large language models.</p>
               </td>
             </tr></tbody></table>
