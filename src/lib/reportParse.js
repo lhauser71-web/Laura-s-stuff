@@ -53,7 +53,8 @@ const NUM = /[-+−]?[$£€¥]?\d[\d,]*(?:\.\d+)?\s?(?:%|bps|x|bn|m|M|k)?/;
 export function parseNumber(item) {
   const m = item.match(/^\*\*(.+?)\*\*\s*(.*)$/);
   const head = (m ? m[1] : item).replace(/[.:]\s*$/, "").trim();
-  const body = m ? m[2].trim() : "";
+  let body = m ? m[2].trim().replace(/^[—–\-:]\s*/, "") : "";
+  body = body.charAt(0).toUpperCase() + body.slice(1);
   const n = head.match(NUM);
   if (!n) return { value: "", label: head, body };
   const value = n[0].trim();
