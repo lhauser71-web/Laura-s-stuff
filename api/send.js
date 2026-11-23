@@ -109,7 +109,7 @@ export default async function handler(req, res) {
   try {
     const tx = nodemailer.createTransport({ service: "gmail", auth: { user, pass } });
     await tx.sendMail({
-      from: { name: "Fifth Dimension · Deal Screen", address: user },
+      from: { name: "Laura from Fifth Dimension", address: user },
       to, replyTo: user, subject, html, text,
       attachments: [{ filename: "IC-first-pass.pdf", content: Buffer.from(pdf), contentType: "application/pdf" }],
     });
