@@ -62,7 +62,6 @@ export default function DealScreen() {
   const ctrlRef = useRef(null);
   const soloShownRef = useRef(false);
   const soloRef = useRef(null);
-  const [soloNote, setSoloNote] = useState(false);
 
   const [leadDone, setLeadDone] = useState(false);
   const [lName, setLName] = useState("");
@@ -485,18 +484,15 @@ export default function DealScreen() {
               <thead><tr><th></th><th>Deal Screen</th><th>Solo</th></tr></thead>
               <tbody>
                 <tr><th>Works from</th><td>The headline numbers</td><td>The real numbers based on the complex documentation</td></tr>
-                <tr><th>Checks</th><td>The math on your inputs</td><td>The formulas across every deal aspect (the OM against the T-12, the rent roll against the OM)</td></tr>
+                <tr><th>Checks</th><td>Simple math based on your inputs</td><td>The formulas across every deal aspect (the OM against the T-12, the rent roll against the OM)</td></tr>
                 <tr><th>Confidential files</th><td>N/A</td><td>Uploaded securely, and never used to train large language models</td></tr>
                 <tr><th>What you get</th><td>A one-page first pass</td><td>A cited IC memo draft your team can check and sign off</td></tr>
               </tbody>
             </table>
             <div className="row solo-cta">
-              <a className="btn-primary" href={SOLO_URL} target="_blank" rel="noopener" onClick={() => setSoloNote(true)}>Start Solo free for 3 months</a>
+              <a className="btn-primary" href={SOLO_URL} target="_blank" rel="noopener">Start Solo free for 3 months</a>
               <button className="ghost" type="button" onClick={closeSolo}>Not now</button>
             </div>
-            {soloNote && (
-              <p className="hint" style={{ marginTop: 10, textAlign: "center" }}>Solo sign-up has opened in a new tab. <span className="tag">later</span> In production the three-month offer is applied automatically, and HubSpot records solo_trial_started against this contact.</p>
-            )}
           </div>
         </dialog>
       </main>
