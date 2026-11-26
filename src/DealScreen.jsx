@@ -670,7 +670,7 @@ export default function DealScreen() {
               </tbody>
             </table>
             <div className="row solo-cta">
-              <a className="btn-primary" href={SOLO_URL} target="_blank" rel="noopener">Start Solo free for 3 months</a>
+              <a className="btn-primary" href={SOLO_URL} target="_blank" rel="noopener">Start Solo free for one month</a>
               <button className="ghost" type="button" onClick={closeSolo}>Not now</button>
             </div>
           </div>

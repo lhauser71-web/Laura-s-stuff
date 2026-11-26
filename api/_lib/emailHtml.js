@@ -70,7 +70,7 @@ export function buildEmail(e) {
     </td>
   </tr></table>
   <table ${TBL}><tr><td align="center" style="padding-top:22px">
-    <a href="${SOLO_URL}" style="display:inline-block;padding:16px 34px;border-radius:4px;background-color:#e15e29;border:2px solid #e15e29;color:#ffffff;text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase">Start Solo free for 3 months</a>
+    <a href="${SOLO_URL}" style="display:inline-block;padding:16px 34px;border-radius:4px;background-color:#e15e29;border:2px solid #e15e29;color:#ffffff;text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase">Start Solo free for one month</a>
   </td></tr></table>
 </td></tr>
 
@@ -109,7 +109,7 @@ export function buildEmail(e) {
     e.kpis.map(([k, v]) => `${k} ${v}`).join(" · "),
     "",
     "Upload the whole package (the OM, the rent roll, the T-12, the loan docs) for a more accurate, in-depth analysis. Uploaded files are protected and never used to train large language models.",
-    `Start Solo free for 3 months: ${SOLO_URL}`,
+    `Start Solo free for one month: ${SOLO_URL}`,
     `Book a call with an expert: ${CONTACT_URL}`,
   ].filter((l) => l !== null).join("\n");
 

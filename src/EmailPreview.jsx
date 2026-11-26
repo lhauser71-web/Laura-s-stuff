@@ -117,7 +117,7 @@ export default function EmailPreview({ data = SAMPLE_EMAIL }) {
               </td>
             </tr></tbody></table>
             <table {...tbl}><tbody><tr><td align="center" style={{ paddingTop: 22 }}>
-              <a href={SOLO_URL} style={{ display: "inline-block", padding: "16px 34px", borderRadius: 4, backgroundColor: "#e15e29", border: "2px solid #e15e29", color: "#ffffff", textDecoration: "none", fontSize: 13, letterSpacing: ".12em", textTransform: "uppercase" }}>Start Solo free for 3 months</a>
+              <a href={SOLO_URL} style={{ display: "inline-block", padding: "16px 34px", borderRadius: 4, backgroundColor: "#e15e29", border: "2px solid #e15e29", color: "#ffffff", textDecoration: "none", fontSize: 13, letterSpacing: ".12em", textTransform: "uppercase" }}>Start Solo free for one month</a>
             </td></tr></tbody></table>
           </td></tr>
 
